@@ -1,0 +1,63 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# VS Code settings
+.vscode/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Environment variables
+.env
+*.env
+
+# MySQL dumps
+*.sql
+
+# Logs
+*.log
+
+# SQLite (just in case)
+*.sqlite3
+*.db
+
+# macOS and Windows
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Python virtualenv
+venv/
+ENV/
+env/
+.venv/
+
+# Test coverage reports
+htmlcov/
+.coverage
+.tox/
+.nox/
+.cache/
+pytest_cache/
+
+# Flask
+instance/
+*.pid
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Pyre type checker
+.pyre/
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# IDEs
+.idea/
