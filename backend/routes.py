@@ -1,9 +1,11 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-from models import Base, Users,  Property, Review, Favorite, Leasetransfer
+from models import Base, Users, Property, Review, Favorite, Leasetransfer
 
 app = Flask(__name__)
+CORS(app)  # <-- Enable CORS for all routes
 
 DATABASE_URI = 'mysql+pymysql://root:Root123!@localhost:3306/workbenchdb'
 engine = create_engine(DATABASE_URI)
