@@ -4,7 +4,7 @@ export const entityConfig = {
       fields: ['Email', 'Role'], // fields used in CrudDialog
       idKey: 'UserID'
     },
-    properties: {
+    property: {
       fields: ['Name', 'Location', 'Price', 'RoomType'],
       idKey: 'PropertyID'
     },

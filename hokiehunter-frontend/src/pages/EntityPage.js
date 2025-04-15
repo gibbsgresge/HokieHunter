@@ -1,4 +1,3 @@
-// src/pages/EntityPage.js
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Typography, Button, Grid } from '@mui/material'
@@ -8,65 +7,83 @@ import DataCard from '../components/DataCard'
 import CrudDialog from '../components/CrudDialog'
 
 function EntityPage() {
-  const { entity } = useParams()             // e.g. "users" or "properties"
-  const config = entityConfig[entity] || {}  // fields, idKey
+  const { entity } = useParams()
+  const config = entityConfig[entity] || {}
   const { fields = [], idKey = 'id' } = config
 
   const [items, setItems] = useState([])
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [dialogMode, setDialogMode] = useState('create') // or 'update'
+  const [dialogMode, setDialogMode] = useState('create') // 'create' or 'update'
   const [selectedItem, setSelectedItem] = useState(null)
 
+  // Fetch entity data on load or when entity changes
   useEffect(() => {
-    if (config) loadItems()
+    if (entity) loadItems()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entity]) // refetch if entity changes
+  }, [entity])
 
   const loadItems = async () => {
-    const data = await fetchData(entity)
-    setItems(data)
+    try {
+      const data = await fetchData(entity)
+      setItems(data)
+    } catch (error) {
+      console.error('Failed to fetch', error)
+    }
   }
 
   const handleCreate = () => {
     setDialogMode('create')
-    // create an object with empty strings for each field
-    const emptyObj = fields.reduce((acc, f) => ({ ...acc, [f]: '' }), {})
-    setSelectedItem(emptyObj)
+    const emptyItem = fields.reduce((acc, field) => ({ ...acc, [field]: '' }), {})
+    setSelectedItem(emptyItem)
     setDialogOpen(true)
   }
 
   const handleEdit = (item) => {
     setDialogMode('update')
-    setSelectedItem({ ...item }) // shallow copy
+    setSelectedItem(item)
     setDialogOpen(true)
   }
 
   const handleDelete = async (item) => {
-    if (!window.confirm(`Are you sure you want to delete this ${entity}?`)) return
-    await deleteItem(entity, item[idKey])
-    loadItems()
+    if (!window.confirm(`Delete this ${entity} entry?`)) return
+    try {
+      await deleteItem(entity, item[idKey])
+      loadItems()
+    } catch (error) {
+      console.error('Delete failed:', error)
+    }
   }
 
   const handleDialogSubmit = async (formData) => {
-    if (dialogMode === 'create') {
-      await createItem(entity, formData)
-    } else {
-      await updateItem(entity, formData[idKey], formData)
+    try {
+      if (dialogMode === 'create') {
+        await createItem(entity, formData)
+      } else {
+        await updateItem(entity, formData[idKey], formData)
+      }
+      setDialogOpen(false)
+      loadItems()
+    } catch (error) {
+      console.error('Save failed:', error)
     }
-    loadItems()
-    setDialogOpen(false)
   }
 
   return (
     <div>
-      <Typography variant="h5" gutterBottom textTransform="capitalize">
+      <Typography variant="h5" gutterBottom sx={{ textTransform: 'capitalize' }}>
         {entity}
       </Typography>
-      <Button variant="contained" onClick={handleCreate} sx={{ mb: 2 }}>
+
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleCreate}
+        sx={{ mb: 3 }}
+      >
         Insert {entity}
       </Button>
 
-      <Grid container spacing={2}>
+      <Grid container spacing={3}>
         {items.map((item) => (
           <Grid item xs={12} sm={6} md={4} key={item[idKey]}>
             <DataCard

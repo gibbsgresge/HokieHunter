@@ -62,7 +62,7 @@ def delete_user(user_id):
 # -----------------------------
 # Property CRUD
 # -----------------------------
-@app.route('/properties', methods=['GET'])
+@app.route('/property', methods=['GET'])
 def get_properties():
     with Session(engine) as session:
         properties = session.query(Property).all()
@@ -74,7 +74,7 @@ def get_properties():
             "RoomType": p.RoomType
         } for p in properties])
 
-@app.route('/properties/<int:property_id>', methods=['GET'])
+@app.route('/property/<int:property_id>', methods=['GET'])
 def get_property(property_id):
     with Session(engine) as session:
         prop = session.get(Property, property_id)
@@ -88,7 +88,7 @@ def get_property(property_id):
             })
         return jsonify({"error": "Property not found"}), 404
 
-@app.route('/properties', methods=['POST'])
+@app.route('/property', methods=['POST'])
 def create_property():
     data = request.get_json()
     with Session(engine) as session:
@@ -102,7 +102,7 @@ def create_property():
         session.commit()
         return jsonify({"message": "Property created", "PropertyID": new_prop.PropertyID}), 201
 
-@app.route('/properties/<int:property_id>', methods=['PUT'])
+@app.route('/property/<int:property_id>', methods=['PUT'])
 def update_property(property_id):
     data = request.get_json()
     with Session(engine) as session:
@@ -116,7 +116,7 @@ def update_property(property_id):
             return jsonify({"message": "Property updated"})
         return jsonify({"error": "Property not found"}), 404
 
-@app.route('/properties/<int:property_id>', methods=['DELETE'])
+@app.route('/property/<int:property_id>', methods=['DELETE'])
 def delete_property(property_id):
     with Session(engine) as session:
         prop = session.get(Property, property_id)
