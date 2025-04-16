@@ -9,7 +9,7 @@ leasetransfer_bp = Blueprint('leasetransfer_bp', __name__)
 # -----------------------------
 # Get all lease transfers
 # -----------------------------
-@leasetransfer_bp.route('/leasetransfers', methods=['GET'])
+@leasetransfer_bp.route('/leasetransfer', methods=['GET'])
 def get_leasetransfers():
     with Session(engine) as session:
         transfers = session.query(Leasetransfer).all()
@@ -27,7 +27,7 @@ def get_leasetransfers():
 # -----------------------------
 # Create a new lease transfer
 # -----------------------------
-@leasetransfer_bp.route('/leasetransfers', methods=['POST'])
+@leasetransfer_bp.route('/leasetransfer', methods=['POST'])
 def create_leasetransfer():
     data = request.get_json()
     with Session(engine) as session:

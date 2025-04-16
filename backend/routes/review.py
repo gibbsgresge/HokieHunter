@@ -8,7 +8,7 @@ review_bp = Blueprint('review_bp', __name__)
 # -----------------------------
 # Get all reviews
 # -----------------------------
-@review_bp.route('/reviews', methods=['GET'])
+@review_bp.route('/review', methods=['GET'])
 def get_reviews():
     with Session(engine) as session:
         reviews = session.query(Review).all()
@@ -26,7 +26,7 @@ def get_reviews():
 # -----------------------------
 # Create a new review
 # -----------------------------
-@review_bp.route('/reviews', methods=['POST'])
+@review_bp.route('/review', methods=['POST'])
 def create_review():
     data = request.get_json()
     with Session(engine) as session:

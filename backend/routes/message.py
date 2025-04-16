@@ -9,7 +9,7 @@ message_bp = Blueprint('message_bp', __name__)
 # -----------------------------
 # Get all messages
 # -----------------------------
-@message_bp.route('/messages', methods=['GET'])
+@message_bp.route('/message', methods=['GET'])
 def get_messages():
     with Session(engine) as session:
         messages = session.query(Message).all()
@@ -26,7 +26,7 @@ def get_messages():
 # -----------------------------
 # Create a new message
 # -----------------------------
-@message_bp.route('/messages', methods=['POST'])
+@message_bp.route('/message', methods=['POST'])
 def create_message():
     data = request.get_json()
     with Session(engine) as session:

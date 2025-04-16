@@ -9,7 +9,7 @@ list_bp = Blueprint('list_bp', __name__)
 # -----------------------------
 # Get all listings
 # -----------------------------
-@list_bp.route('/listings', methods=['GET'])
+@list_bp.route('/list', methods=['GET'])
 def get_listings():
     with Session(engine) as session:
         listings = session.query(List).all()

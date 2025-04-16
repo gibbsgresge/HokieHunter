@@ -8,7 +8,7 @@ admin_bp = Blueprint('admin_bp', __name__)
 # -----------------------------
 # Get all admins
 # -----------------------------
-@admin_bp.route('/admins', methods=['GET'])
+@admin_bp.route('/admin', methods=['GET'])
 def get_admins():
     with Session(engine) as session:
         admins = session.query(Admin).all()
@@ -25,7 +25,7 @@ def get_admins():
 # -----------------------------
 # Get a single admin
 # -----------------------------
-@admin_bp.route('/admins/<int:admin_id>', methods=['GET'])
+@admin_bp.route('/admin/<int:admin_id>', methods=['GET'])
 def get_admin(admin_id):
     with Session(engine) as session:
         admin = session.get(Admin, admin_id)
@@ -41,7 +41,7 @@ def get_admin(admin_id):
 # -----------------------------
 # Create a new admin
 # -----------------------------
-@admin_bp.route('/admins', methods=['POST'])
+@admin_bp.route('/admin', methods=['POST'])
 def create_admin():
     data = request.get_json()
     with Session(engine) as session:
@@ -57,7 +57,7 @@ def create_admin():
 # -----------------------------
 # Update admin
 # -----------------------------
-@admin_bp.route('/admins/<int:admin_id>', methods=['PUT'])
+@admin_bp.route('/admin/<int:admin_id>', methods=['PUT'])
 def update_admin(admin_id):
     data = request.get_json()
     with Session(engine) as session:
@@ -72,7 +72,7 @@ def update_admin(admin_id):
 # -----------------------------
 # Delete admin
 # -----------------------------
-@admin_bp.route('/admins/<int:admin_id>', methods=['DELETE'])
+@admin_bp.route('/admin/<int:admin_id>', methods=['DELETE'])
 def delete_admin(admin_id):
     with Session(engine) as session:
         admin = session.get(Admin, admin_id)

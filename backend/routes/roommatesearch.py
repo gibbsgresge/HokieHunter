@@ -8,7 +8,7 @@ roommatesearch_bp = Blueprint('roommatesearch_bp', __name__)
 # -----------------------------
 # Get all roommate searches
 # -----------------------------
-@roommatesearch_bp.route('/roommatesearches', methods=['GET'])
+@roommatesearch_bp.route('/roommatesearch', methods=['GET'])
 def get_roommate_searches():
     with Session(engine) as session:
         searches = session.query(Roommatesearch).all()
@@ -24,7 +24,7 @@ def get_roommate_searches():
 # -----------------------------
 # Create a new roommate search
 # -----------------------------
-@roommatesearch_bp.route('/roommatesearches', methods=['POST'])
+@roommatesearch_bp.route('/roommatesearch', methods=['POST'])
 def create_roommate_search():
     data = request.get_json()
     with Session(engine) as session:

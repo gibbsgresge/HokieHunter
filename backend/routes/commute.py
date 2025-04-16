@@ -8,7 +8,7 @@ commute_bp = Blueprint('commute_bp', __name__)
 # -----------------------------
 # Get all commute entries
 # -----------------------------
-@commute_bp.route('/commutes', methods=['GET'])
+@commute_bp.route('/commute', methods=['GET'])
 def get_commutes():
     with Session(engine) as session:
         commutes = session.query(Commute).all()
@@ -26,7 +26,7 @@ def get_commutes():
 # -----------------------------
 # Create a new commute entry
 # -----------------------------
-@commute_bp.route('/commutes', methods=['POST'])
+@commute_bp.route('/commute', methods=['POST'])
 def create_commute():
     data = request.get_json()
     with Session(engine) as session:

@@ -9,7 +9,7 @@ favorite_bp = Blueprint('favorite_bp', __name__)
 # -----------------------------
 # Get all favorites
 # -----------------------------
-@favorite_bp.route('/favorites', methods=['GET'])
+@favorite_bp.route('/favorite', methods=['GET'])
 def get_favorites():
     with Session(engine) as session:
         favorites = session.query(Favorite).all()
@@ -27,7 +27,7 @@ def get_favorites():
 # -----------------------------
 # Create a new favorite
 # -----------------------------
-@favorite_bp.route('/favorites', methods=['POST'])
+@favorite_bp.route('/favorite', methods=['POST'])
 def create_favorite():
     data = request.get_json()
     with Session(engine) as session:

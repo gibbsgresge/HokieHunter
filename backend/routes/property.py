@@ -8,7 +8,7 @@ property_bp = Blueprint('property_bp', __name__)
 # -----------------------------
 # Get all properties
 # -----------------------------
-@property_bp.route('/properties', methods=['GET'])
+@property_bp.route('/property', methods=['GET'])
 def get_properties():
     with Session(engine) as session:
         properties = session.query(Property).all()
@@ -26,7 +26,7 @@ def get_properties():
 # -----------------------------
 # Get a single property
 # -----------------------------
-@property_bp.route('/properties/<int:property_id>', methods=['GET'])
+@property_bp.route('/property/<int:property_id>', methods=['GET'])
 def get_property(property_id):
     with Session(engine) as session:
         prop = session.get(Property, property_id)
@@ -43,7 +43,7 @@ def get_property(property_id):
 # -----------------------------
 # Create a new property
 # -----------------------------
-@property_bp.route('/properties', methods=['POST'])
+@property_bp.route('/property', methods=['POST'])
 def create_property():
     data = request.get_json()
     with Session(engine) as session:
@@ -60,7 +60,7 @@ def create_property():
 # -----------------------------
 # Update property
 # -----------------------------
-@property_bp.route('/properties/<int:property_id>', methods=['PUT'])
+@property_bp.route('/property/<int:property_id>', methods=['PUT'])
 def update_property(property_id):
     data = request.get_json()
     with Session(engine) as session:
@@ -77,7 +77,7 @@ def update_property(property_id):
 # -----------------------------
 # Delete property
 # -----------------------------
-@property_bp.route('/properties/<int:property_id>', methods=['DELETE'])
+@property_bp.route('/property/<int:property_id>', methods=['DELETE'])
 def delete_property(property_id):
     with Session(engine) as session:
         prop = session.get(Property, property_id)
