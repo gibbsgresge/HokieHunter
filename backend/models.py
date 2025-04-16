@@ -1,18 +1,90 @@
-from typing import List, Optional
-from sqlalchemy import Date, DateTime, Enum, Float, ForeignKeyConstraint, Index, Integer, String, Text
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from typing import Optional
+from sqlalchemy import (
+    Date, DateTime, Enum, Float, ForeignKey, ForeignKeyConstraint,
+    Index, Integer, String, Text
+)
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 import datetime
 
 class Base(DeclarativeBase):
     pass
 
-class LeaseTransfer(Base):
-    __tablename__ = 'lease_transfer'
-    lease_transfer_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    transfer_details: Mapped[Optional[str]] = mapped_column(Text)
-    student_id: Mapped[Optional[int]] = mapped_column(Integer)
-    property_id: Mapped[Optional[int]] = mapped_column(Integer)
+# ----------------------------------------------------------------------
+# 1) USERS PARENT TABLE (Joined Inheritance)
+# ----------------------------------------------------------------------
+class Users(Base):
+    __tablename__ = 'users'
 
+    UserID: Mapped[int] = mapped_column(Integer, primary_key=True)
+    Email: Mapped[str] = mapped_column(String(100), nullable=False)
+    Role: Mapped[str] = mapped_column(Enum('student', 'landlord', 'admin'), nullable=False)
+
+    __mapper_args__ = {
+        'polymorphic_on': Role,
+        'polymorphic_identity': 'user'
+    }
+
+# ----------------------------------------------------------------------
+# 2) CHILD CLASSES
+#    "ondelete='CASCADE'" can be used if you want removing a Users row
+#    to automatically remove the child row. This is optional in joined
+#    inheritance, but shown for completeness.
+# ----------------------------------------------------------------------
+
+class Admin(Users):
+    __tablename__ = 'admin'
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ['AdminID'], 
+            ['users.UserID'],
+            ondelete='CASCADE',  # If removing the parent user => remove Admin row
+            name='admin_ibfk_1'
+        ),
+    )
+    AdminID: Mapped[int] = mapped_column(Integer, primary_key=True)
+    Permissions: Mapped[Optional[str]] = mapped_column(Text)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'admin'
+    }
+
+class Landlords(Users):
+    __tablename__ = 'landlords'
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ['LandlordID'],
+            ['users.UserID'],
+            ondelete='CASCADE',  # If removing user => remove Landlord row
+            name='landlords_ibfk_1'
+        ),
+    )
+    LandlordID: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'landlord'
+    }
+
+class Students(Users):
+    __tablename__ = 'students'
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ['StudentID'],
+            ['users.UserID'],
+            ondelete='CASCADE',  # If removing user => remove Student row
+            name='students_ibfk_1'
+        ),
+    )
+    StudentID: Mapped[int] = mapped_column(Integer, primary_key=True)
+    Major: Mapped[Optional[str]] = mapped_column(String(100))
+    GraduationYear: Mapped[Optional[int]] = mapped_column(Integer)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'student'
+    }
+
+# ----------------------------------------------------------------------
+# 3) PROPERTY TABLE
+# ----------------------------------------------------------------------
 class Property(Base):
     __tablename__ = 'property'
     PropertyID: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -21,37 +93,22 @@ class Property(Base):
     Price: Mapped[Optional[str]] = mapped_column(String(50))
     RoomType: Mapped[Optional[str]] = mapped_column(String(50))
 
-class RoommateSearch(Base):
-    __tablename__ = 'roommate_search'
-    roommate_search_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    preferences: Mapped[Optional[str]] = mapped_column(Text)
-    student_id: Mapped[Optional[int]] = mapped_column(Integer)
 
-class SafetyFeatures(Base):
-    __tablename__ = 'safety_features'
-    safety_feature_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    feature_name: Mapped[Optional[str]] = mapped_column(String(100))
-    property_id: Mapped[Optional[int]] = mapped_column(Integer)
-
-class Users(Base):
-    __tablename__ = 'users'
-    __table_args__ = (Index('Email', 'Email', unique=True),)
-    UserID: Mapped[int] = mapped_column(Integer, primary_key=True)
-    Email: Mapped[str] = mapped_column(String(100))
-    Role: Mapped[str] = mapped_column(Enum('student', 'landlord', 'admin'))
-
-class Admin(Users):
-    __tablename__ = 'admin'
-    __table_args__ = (
-        ForeignKeyConstraint(['AdminID'], ['users.UserID'], name='admin_ibfk_1'),
-    )
-    AdminID: Mapped[int] = mapped_column(Integer, primary_key=True)
-    Permissions: Mapped[Optional[str]] = mapped_column(Text)
+# ----------------------------------------------------------------------
+# 4) TABLES REFERENCING STUDENTS OR PROPERTY, ETC.
+#    We'll add "ondelete='CASCADE'" so that removing the parent row
+#    automatically removes dependent rows.
+# ----------------------------------------------------------------------
 
 class Commute(Base):
     __tablename__ = 'commute'
     __table_args__ = (
-        ForeignKeyConstraint(['PropertyID'], ['property.PropertyID'], name='commute_ibfk_1'),
+        ForeignKeyConstraint(
+            ['PropertyID'], 
+            ['property.PropertyID'],
+            ondelete='CASCADE',
+            name='commute_ibfk_1'
+        ),
         Index('PropertyID', 'PropertyID')
     )
     CommuteID: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -60,17 +117,15 @@ class Commute(Base):
     Distance: Mapped[Optional[float]] = mapped_column(Float)
     ServiceID: Mapped[Optional[int]] = mapped_column(Integer)
 
-class Landlords(Users):
-    __tablename__ = 'landlords'
-    __table_args__ = (
-        ForeignKeyConstraint(['LandlordID'], ['users.UserID'], name='landlords_ibfk_1'),
-    )
-    LandlordID: Mapped[int] = mapped_column(Integer, primary_key=True)
-
 class List(Base):
     __tablename__ = 'list'
     __table_args__ = (
-        ForeignKeyConstraint(['PropertyID'], ['property.PropertyID'], name='list_ibfk_1'),
+        ForeignKeyConstraint(
+            ['PropertyID'], 
+            ['property.PropertyID'],
+            ondelete='CASCADE',
+            name='list_ibfk_1'
+        ),
         Index('PropertyID', 'PropertyID')
     )
     ListID: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -81,7 +136,12 @@ class List(Base):
 class Message(Base):
     __tablename__ = 'message'
     __table_args__ = (
-        ForeignKeyConstraint(['SenderID'], ['users.UserID'], name='message_ibfk_1'),
+        ForeignKeyConstraint(
+            ['SenderID'], 
+            ['users.UserID'],
+            ondelete='CASCADE', 
+            name='message_ibfk_1'
+        ),
         Index('SenderID', 'SenderID')
     )
     MessageID: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -92,7 +152,12 @@ class Message(Base):
 class Movingservices(Base):
     __tablename__ = 'movingservices'
     __table_args__ = (
-        ForeignKeyConstraint(['PropertyID'], ['property.PropertyID'], name='movingservices_ibfk_1'),
+        ForeignKeyConstraint(
+            ['PropertyID'],
+            ['property.PropertyID'],
+            ondelete='CASCADE',
+            name='movingservices_ibfk_1'
+        ),
         Index('PropertyID', 'PropertyID')
     )
     ServiceID: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -103,26 +168,27 @@ class Movingservices(Base):
 class Safetyfeatures(Base):
     __tablename__ = 'safetyfeatures'
     __table_args__ = (
-        ForeignKeyConstraint(['PropertyID'], ['property.PropertyID'], name='safetyfeatures_ibfk_1'),
+        ForeignKeyConstraint(
+            ['PropertyID'],
+            ['property.PropertyID'],
+            ondelete='CASCADE',
+            name='safetyfeatures_ibfk_1'
+        ),
         Index('PropertyID', 'PropertyID')
     )
     FeatureID: Mapped[int] = mapped_column(Integer, primary_key=True)
     PropertyID: Mapped[Optional[int]] = mapped_column(Integer)
     FeatureDescription: Mapped[Optional[str]] = mapped_column(Text)
 
-class Students(Users):
-    __tablename__ = 'students'
-    __table_args__ = (
-        ForeignKeyConstraint(['StudentID'], ['users.UserID'], name='students_ibfk_1'),
-    )
-    StudentID: Mapped[int] = mapped_column(Integer, primary_key=True)
-    Major: Mapped[Optional[str]] = mapped_column(String(100))
-    GraduationYear: Mapped[Optional[int]] = mapped_column(Integer)
-
 class Amenities(Base):
     __tablename__ = 'amenities'
     __table_args__ = (
-        ForeignKeyConstraint(['ListID'], ['list.ListID'], name='amenities_ibfk_1'),
+        ForeignKeyConstraint(
+            ['ListID'],
+            ['list.ListID'],
+            ondelete='CASCADE',
+            name='amenities_ibfk_1'
+        ),
         Index('ListID', 'ListID')
     )
     AmenityID: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -132,8 +198,18 @@ class Amenities(Base):
 class Favorite(Base):
     __tablename__ = 'favorite'
     __table_args__ = (
-        ForeignKeyConstraint(['PropertyID'], ['property.PropertyID'], name='favorite_ibfk_2'),
-        ForeignKeyConstraint(['StudentID'], ['students.StudentID'], name='favorite_ibfk_1'),
+        ForeignKeyConstraint(
+            ['PropertyID'],
+            ['property.PropertyID'],
+            ondelete='CASCADE',
+            name='favorite_ibfk_2'
+        ),
+        ForeignKeyConstraint(
+            ['StudentID'],
+            ['students.StudentID'],
+            ondelete='CASCADE',
+            name='favorite_ibfk_1'
+        ),
         Index('PropertyID', 'PropertyID'),
         Index('StudentID', 'StudentID')
     )
@@ -146,8 +222,18 @@ class Favorite(Base):
 class Leasetransfer(Base):
     __tablename__ = 'leasetransfer'
     __table_args__ = (
-        ForeignKeyConstraint(['PropertyID'], ['property.PropertyID'], name='leasetransfer_ibfk_2'),
-        ForeignKeyConstraint(['StudentID'], ['students.StudentID'], name='leasetransfer_ibfk_1'),
+        ForeignKeyConstraint(
+            ['PropertyID'],
+            ['property.PropertyID'],
+            ondelete='CASCADE',
+            name='leasetransfer_ibfk_2'
+        ),
+        ForeignKeyConstraint(
+            ['StudentID'],
+            ['students.StudentID'],
+            ondelete='CASCADE',
+            name='leasetransfer_ibfk_1'
+        ),
         Index('PropertyID', 'PropertyID'),
         Index('StudentID', 'StudentID')
     )
@@ -160,8 +246,18 @@ class Leasetransfer(Base):
 class Review(Base):
     __tablename__ = 'review'
     __table_args__ = (
-        ForeignKeyConstraint(['PropertyID'], ['property.PropertyID'], name='review_ibfk_2'),
-        ForeignKeyConstraint(['StudentID'], ['students.StudentID'], name='review_ibfk_1'),
+        ForeignKeyConstraint(
+            ['PropertyID'],
+            ['property.PropertyID'],
+            ondelete='CASCADE',
+            name='review_ibfk_2'
+        ),
+        ForeignKeyConstraint(
+            ['StudentID'],
+            ['students.StudentID'],
+            ondelete='CASCADE',
+            name='review_ibfk_1'
+        ),
         Index('PropertyID', 'PropertyID'),
         Index('StudentID', 'StudentID')
     )
@@ -174,7 +270,12 @@ class Review(Base):
 class Roommatesearch(Base):
     __tablename__ = 'roommatesearch'
     __table_args__ = (
-        ForeignKeyConstraint(['StudentID'], ['students.StudentID'], name='roommatesearch_ibfk_1'),
+        ForeignKeyConstraint(
+            ['StudentID'],
+            ['students.StudentID'],
+            ondelete='CASCADE',
+            name='roommatesearch_ibfk_1'
+        ),
         Index('StudentID', 'StudentID')
     )
     SearchID: Mapped[int] = mapped_column(Integer, primary_key=True)
