@@ -4,15 +4,15 @@ export const entityConfig = {
     idKey: 'UserID',
   },
   students: {
-    fields: ['Major', 'GraduationYear'],
+    fields: ['Email', 'Major', 'GraduationYear'],
     idKey: 'StudentID',
   },
   landlords: {
-    fields: [],
+    fields: ['Email'],
     idKey: 'LandlordID',
   },
   admin: {
-    fields: ['Permissions'],
+    fields: ['Email', 'Permissions'],
     idKey: 'AdminID',
   },
   property: {

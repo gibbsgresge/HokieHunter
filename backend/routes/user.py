@@ -1,7 +1,10 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy.orm import Session
-from models import Users
-from db import engine  # or however you expose the engine
+from models import Users, Students, Landlords, Admin
+from db import engine 
+from .students import create_student 
+from .admin import create_admin
+from .landlords import create_landlord
 
 user_bp = Blueprint('user_bp', __name__)
 
@@ -27,32 +30,75 @@ def get_user(user_id):
             return jsonify({"UserID": user.UserID, "Email": user.Email, "Role": user.Role})
         return jsonify({"error": "User not found"}), 404
 
-# -----------------------------
-# Create a new user
-# -----------------------------
 @user_bp.route('/users', methods=['POST'])
 def create_user():
     data = request.get_json()
-    with Session(engine) as session:
-        new_user = Users(Email=data['Email'], Role=data['Role'])
-        session.add(new_user)
-        session.commit()
-        return jsonify({"message": "User created", "UserID": new_user.UserID}), 201
+    role = data.get('Role')
 
-# -----------------------------
-# Update user
-# -----------------------------
+    if role == 'student':
+        return create_student()
+    elif role == 'landlord':
+        return create_landlord()
+    elif role == 'admin':
+        return create_admin()
+    else:
+        return jsonify({'error': 'Invalid role'}), 400
+
+
 @user_bp.route('/users/<int:user_id>', methods=['PUT'])
-def update_user(user_id):
+def change_user_role(user_id):
     data = request.get_json()
+    new_role = data.get('Role')
+    new_email = data.get('Email')
+    extra_fields = data.get('Extra', {})  # e.g., {'Major': 'CS'}
+
     with Session(engine) as session:
         user = session.get(Users, user_id)
-        if user:
-            user.Email = data.get('Email', user.Email)
-            user.Role = data.get('Role', user.Role)
-            session.commit()
-            return jsonify({"message": "User updated"})
-        return jsonify({"error": "User not found"}), 404
+
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        current_class = type(user)
+        current_role = user.Role
+
+        # If role changed, delete current subclass and recreate
+        if new_role != current_role:
+            session.delete(user)
+            session.flush()  # keeps UserID usable
+
+            if new_role == 'student':
+                new_user = Students(
+                    StudentID=user_id,
+                    Email=new_email,
+                    Role='student',
+                    Major=extra_fields.get('Major'),
+                    GraduationYear=extra_fields.get('GraduationYear')
+                )
+            elif new_role == 'landlord':
+                new_user = Landlords(
+                    LandlordID=user_id,
+                    Email=new_email,
+                    Role='landlord'
+                )
+            elif new_role == 'admin':
+                new_user = Admin(
+                    AdminID=user_id,
+                    Email=new_email,
+                    Role='admin',
+                    Permissions=extra_fields.get('Permissions')
+                )
+            else:
+                return jsonify({"error": "Invalid role"}), 400
+
+            session.add(new_user)
+        else:
+            # Role unchanged, update email if needed
+            if new_email and user.Email != new_email:
+                user.Email = new_email
+
+        session.commit()
+        return jsonify({"message": "User updated"}), 200
+
 
 # -----------------------------
 # Delete user
