@@ -2,5 +2,7 @@ python-dotenv
 SQLAlchemy
 pymysql
 Flask
+flask_cors
 Flask-SQLAlchemy
 Flask-Migrate
+cryptography

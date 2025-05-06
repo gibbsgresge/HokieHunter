@@ -57,7 +57,7 @@ class Landlords(Users):
         ForeignKeyConstraint(
             ['LandlordID'],
             ['users.UserID'],
-            ondelete='CASCADE',  # If removing user => remove Landlord row
+            ondelete='CASCADE',
             name='landlords_ibfk_1'
         ),
     )
@@ -66,6 +66,7 @@ class Landlords(Users):
     __mapper_args__ = {
         'polymorphic_identity': 'landlord'
     }
+
 
 class Students(Users):
     __tablename__ = 'students'
@@ -91,11 +92,16 @@ class Students(Users):
 class Property(Base):
     __tablename__ = 'property'
     PropertyID: Mapped[int] = mapped_column(Integer, primary_key=True)
-    LandlordID: Mapped[int] = mapped_column(ForeignKey('landlords.LandlordID', ondelete='SET NULL'))
+    LandlordID: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey('landlords.LandlordID', ondelete='CASCADE'),
+        nullable=False
+    )
     Name: Mapped[Optional[str]] = mapped_column(String(100))
     Location: Mapped[Optional[str]] = mapped_column(String(255))
     Price: Mapped[Optional[str]] = mapped_column(String(50))
     RoomType: Mapped[Optional[str]] = mapped_column(String(50))
+
 
 
 

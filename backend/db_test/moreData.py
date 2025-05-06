@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, text
 from datetime import date
 import random
 
-# ✅ Replace with your MySQL credentials
+# ✅ Replace with your actual MySQL credentials
 DB_URI = "mysql+pymysql://root:Root123!@localhost:3306/workbenchdb"
 
 engine = create_engine(DB_URI)
@@ -19,7 +19,10 @@ with engine.begin() as conn:
     # === USERS ===
     roles = ['student'] * 10 + ['landlord'] * 5 + ['admin'] * 5
     user_start_id = get_next_id(conn, "users", "UserID")
-    user_sql = "INSERT INTO users (UserID, Email, Role) VALUES (:id, :email, :role)"
+    user_sql = """
+    INSERT INTO users (UserID, Email, Role, Username, PasswordHash)
+    VALUES (:id, :email, :role, :username, :password)
+    """
 
     student_users = []
     landlord_users = []
@@ -30,7 +33,9 @@ with engine.begin() as conn:
         conn.execute(text(user_sql), {
             'id': user_id,
             'email': f'user{user_id}@example.com',
-            'role': role
+            'role': role,
+            'username': f'user{user_id}',
+            'password': f'hash{user_id}'  # You can replace this with a real hash later
         })
         if role == "student":
             student_users.append(user_id)
@@ -40,10 +45,8 @@ with engine.begin() as conn:
             admin_users.append(user_id)
 
     # === STUDENTS ===
-    student_start_id = get_next_id(conn, "students", "StudentID")
     student_sql = "INSERT INTO students (StudentID, Major, GraduationYear) VALUES (:id, :major, :year)"
     majors = ['CS', 'Biology', 'Economics', 'Math', 'History']
-
     for i, uid in enumerate(student_users[:5]):
         conn.execute(text(student_sql), {
             'id': uid,
@@ -64,13 +67,14 @@ with engine.begin() as conn:
     # === PROPERTIES ===
     prop_start_id = get_next_id(conn, "property", "PropertyID")
     prop_sql = """
-    INSERT INTO property (PropertyID, Name, Location, Price, RoomType)
-    VALUES (:id, :name, :location, :price, :room)
+    INSERT INTO property (PropertyID, LandlordID, Name, Location, Price, RoomType)
+    VALUES (:id, :landlord_id, :name, :location, :price, :room)
     """
     for i in range(20):
         pid = prop_start_id + i
         conn.execute(text(prop_sql), {
             'id': pid,
+            'landlord_id': landlord_users[i % len(landlord_users)],
             'name': f'Hokie House {pid}',
             'location': f'{100 + pid} Main St',
             'price': str(1000 + i * 25),

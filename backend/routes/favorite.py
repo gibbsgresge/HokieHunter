@@ -1,7 +1,6 @@
 from flask import Blueprint, request, jsonify
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 from models import Favorite, Property, Users, Students
-from sqlalchemy.orm import aliased
 from db import engine
 import datetime
 
@@ -43,6 +42,23 @@ def get_favorites():
         ])
 
 # -----------------------------
+# Get favorite by ID
+# -----------------------------
+@favorite_bp.route('/favorite/<int:favorite_id>', methods=['GET'])
+def get_favorite(favorite_id):
+    with Session(engine) as session:
+        favorite = session.get(Favorite, favorite_id)
+        if favorite:
+            return jsonify({
+                "FavoriteID": favorite.FavoriteID,
+                "StudentID": favorite.StudentID,
+                "PropertyID": favorite.PropertyID,
+                "DateSaved": favorite.DateSaved.isoformat() if favorite.DateSaved else None,
+                "Comments": favorite.Comments
+            })
+        return jsonify({"error": "Favorite not found"}), 404
+
+# -----------------------------
 # Create a new favorite
 # -----------------------------
 @favorite_bp.route('/favorite', methods=['POST'])
@@ -58,3 +74,34 @@ def create_favorite():
         session.add(new_favorite)
         session.commit()
         return jsonify({"message": "Favorite added", "FavoriteID": new_favorite.FavoriteID}), 201
+
+# -----------------------------
+# Update a favorite
+# -----------------------------
+@favorite_bp.route('/favorite/<int:favorite_id>', methods=['PUT'])
+def update_favorite(favorite_id):
+    data = request.get_json()
+    with Session(engine) as session:
+        favorite = session.get(Favorite, favorite_id)
+        if favorite:
+            favorite.StudentID = data.get('StudentID', favorite.StudentID)
+            favorite.PropertyID = data.get('PropertyID', favorite.PropertyID)
+            if 'DateSaved' in data:
+                favorite.DateSaved = datetime.date.fromisoformat(data['DateSaved']) if data['DateSaved'] else None
+            favorite.Comments = data.get('Comments', favorite.Comments)
+            session.commit()
+            return jsonify({"message": "Favorite updated"})
+        return jsonify({"error": "Favorite not found"}), 404
+
+# -----------------------------
+# Delete a favorite
+# -----------------------------
+@favorite_bp.route('/favorite/<int:favorite_id>', methods=['DELETE'])
+def delete_favorite(favorite_id):
+    with Session(engine) as session:
+        favorite = session.get(Favorite, favorite_id)
+        if favorite:
+            session.delete(favorite)
+            session.commit()
+            return jsonify({"message": "Favorite deleted"})
+        return jsonify({"error": "Favorite not found"}), 404

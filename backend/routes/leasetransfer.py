@@ -1,8 +1,7 @@
 from flask import Blueprint, request, jsonify
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 from models import Leasetransfer, Property, Students, Users
 from db import engine
-from sqlalchemy.orm import aliased
 import datetime
 
 leasetransfer_bp = Blueprint('leasetransfer_bp', __name__)
@@ -43,6 +42,23 @@ def get_lease_transfers():
         ])
 
 # -----------------------------
+# Get lease transfer by ID
+# -----------------------------
+@leasetransfer_bp.route('/leasetransfer/<int:transfer_id>', methods=['GET'])
+def get_lease_transfer(transfer_id):
+    with Session(engine) as session:
+        transfer = session.get(Leasetransfer, transfer_id)
+        if transfer:
+            return jsonify({
+                "TransferID": transfer.TransferID,
+                "StudentID": transfer.StudentID,
+                "PropertyID": transfer.PropertyID,
+                "LeaseEndDate": transfer.LeaseEndDate.isoformat() if transfer.LeaseEndDate else None,
+                "TransferStatus": transfer.TransferStatus
+            })
+        return jsonify({"error": "Lease transfer not found"}), 404
+
+# -----------------------------
 # Create a new lease transfer
 # -----------------------------
 @leasetransfer_bp.route('/leasetransfer', methods=['POST'])
@@ -58,3 +74,34 @@ def create_leasetransfer():
         session.add(new_transfer)
         session.commit()
         return jsonify({"message": "Lease transfer created", "TransferID": new_transfer.TransferID}), 201
+
+# -----------------------------
+# Update lease transfer
+# -----------------------------
+@leasetransfer_bp.route('/leasetransfer/<int:transfer_id>', methods=['PUT'])
+def update_leasetransfer(transfer_id):
+    data = request.get_json()
+    with Session(engine) as session:
+        transfer = session.get(Leasetransfer, transfer_id)
+        if transfer:
+            transfer.StudentID = data.get('StudentID', transfer.StudentID)
+            transfer.PropertyID = data.get('PropertyID', transfer.PropertyID)
+            if 'LeaseEndDate' in data:
+                transfer.LeaseEndDate = datetime.date.fromisoformat(data['LeaseEndDate']) if data['LeaseEndDate'] else None
+            transfer.TransferStatus = data.get('TransferStatus', transfer.TransferStatus)
+            session.commit()
+            return jsonify({"message": "Lease transfer updated"})
+        return jsonify({"error": "Lease transfer not found"}), 404
+
+# -----------------------------
+# Delete lease transfer
+# -----------------------------
+@leasetransfer_bp.route('/leasetransfer/<int:transfer_id>', methods=['DELETE'])
+def delete_leasetransfer(transfer_id):
+    with Session(engine) as session:
+        transfer = session.get(Leasetransfer, transfer_id)
+        if transfer:
+            session.delete(transfer)
+            session.commit()
+            return jsonify({"message": "Lease transfer deleted"})
+        return jsonify({"error": "Lease transfer not found"}), 404

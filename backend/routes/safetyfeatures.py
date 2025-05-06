@@ -22,6 +22,21 @@ def get_safety_features():
         ])
 
 # -----------------------------
+# Get safety feature by ID
+# -----------------------------
+@safetyfeatures_bp.route('/safetyfeatures/<int:feature_id>', methods=['GET'])
+def get_safety_feature(feature_id):
+    with Session(engine) as session:
+        feature = session.get(Safetyfeatures, feature_id)
+        if feature:
+            return jsonify({
+                "FeatureID": feature.FeatureID,
+                "PropertyID": feature.PropertyID,
+                "FeatureDescription": feature.FeatureDescription
+            })
+        return jsonify({"error": "Safety feature not found"}), 404
+
+# -----------------------------
 # Create a new safety feature
 # -----------------------------
 @safetyfeatures_bp.route('/safetyfeatures', methods=['POST'])
@@ -35,3 +50,31 @@ def create_safety_feature():
         session.add(new_feature)
         session.commit()
         return jsonify({"message": "Safety feature added", "FeatureID": new_feature.FeatureID}), 201
+
+# -----------------------------
+# Update a safety feature
+# -----------------------------
+@safetyfeatures_bp.route('/safetyfeatures/<int:feature_id>', methods=['PUT'])
+def update_safety_feature(feature_id):
+    data = request.get_json()
+    with Session(engine) as session:
+        feature = session.get(Safetyfeatures, feature_id)
+        if feature:
+            feature.PropertyID = data.get('PropertyID', feature.PropertyID)
+            feature.FeatureDescription = data.get('FeatureDescription', feature.FeatureDescription)
+            session.commit()
+            return jsonify({"message": "Safety feature updated"})
+        return jsonify({"error": "Safety feature not found"}), 404
+
+# -----------------------------
+# Delete a safety feature
+# -----------------------------
+@safetyfeatures_bp.route('/safetyfeatures/<int:feature_id>', methods=['DELETE'])
+def delete_safety_feature(feature_id):
+    with Session(engine) as session:
+        feature = session.get(Safetyfeatures, feature_id)
+        if feature:
+            session.delete(feature)
+            session.commit()
+            return jsonify({"message": "Safety feature deleted"})
+        return jsonify({"error": "Safety feature not found"}), 404

@@ -23,6 +23,22 @@ def get_moving_services():
         ])
 
 # -----------------------------
+# Get moving service by ID
+# -----------------------------
+@movingservices_bp.route('/movingservices/<int:service_id>', methods=['GET'])
+def get_moving_service(service_id):
+    with Session(engine) as session:
+        service = session.get(Movingservices, service_id)
+        if service:
+            return jsonify({
+                "ServiceID": service.ServiceID,
+                "PropertyID": service.PropertyID,
+                "CompanyName": service.CompanyName,
+                "ContactInfo": service.ContactInfo
+            })
+        return jsonify({"error": "Moving service not found"}), 404
+
+# -----------------------------
 # Create a new moving service
 # -----------------------------
 @movingservices_bp.route('/movingservices', methods=['POST'])
@@ -37,3 +53,32 @@ def create_moving_service():
         session.add(new_service)
         session.commit()
         return jsonify({"message": "Moving service added", "ServiceID": new_service.ServiceID}), 201
+
+# -----------------------------
+# Update a moving service
+# -----------------------------
+@movingservices_bp.route('/movingservices/<int:service_id>', methods=['PUT'])
+def update_moving_service(service_id):
+    data = request.get_json()
+    with Session(engine) as session:
+        service = session.get(Movingservices, service_id)
+        if service:
+            service.PropertyID = data.get('PropertyID', service.PropertyID)
+            service.CompanyName = data.get('CompanyName', service.CompanyName)
+            service.ContactInfo = data.get('ContactInfo', service.ContactInfo)
+            session.commit()
+            return jsonify({"message": "Moving service updated"})
+        return jsonify({"error": "Moving service not found"}), 404
+
+# -----------------------------
+# Delete a moving service
+# -----------------------------
+@movingservices_bp.route('/movingservices/<int:service_id>', methods=['DELETE'])
+def delete_moving_service(service_id):
+    with Session(engine) as session:
+        service = session.get(Movingservices, service_id)
+        if service:
+            session.delete(service)
+            session.commit()
+            return jsonify({"message": "Moving service deleted"})
+        return jsonify({"error": "Moving service not found"}), 404

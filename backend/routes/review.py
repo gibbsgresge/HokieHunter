@@ -24,6 +24,23 @@ def get_reviews():
         ])
 
 # -----------------------------
+# Get review by ID
+# -----------------------------
+@review_bp.route('/review/<int:review_id>', methods=['GET'])
+def get_review(review_id):
+    with Session(engine) as session:
+        review = session.get(Review, review_id)
+        if review:
+            return jsonify({
+                "ReviewID": review.ReviewID,
+                "StudentID": review.StudentID,
+                "PropertyID": review.PropertyID,
+                "Rating": review.Rating,
+                "Comments": review.Comments
+            })
+        return jsonify({"error": "Review not found"}), 404
+
+# -----------------------------
 # Create a new review
 # -----------------------------
 @review_bp.route('/review', methods=['POST'])
@@ -39,3 +56,33 @@ def create_review():
         session.add(new_review)
         session.commit()
         return jsonify({"message": "Review submitted", "ReviewID": new_review.ReviewID}), 201
+
+# -----------------------------
+# Update a review
+# -----------------------------
+@review_bp.route('/review/<int:review_id>', methods=['PUT'])
+def update_review(review_id):
+    data = request.get_json()
+    with Session(engine) as session:
+        review = session.get(Review, review_id)
+        if review:
+            review.StudentID = data.get('StudentID', review.StudentID)
+            review.PropertyID = data.get('PropertyID', review.PropertyID)
+            review.Rating = data.get('Rating', review.Rating)
+            review.Comments = data.get('Comments', review.Comments)
+            session.commit()
+            return jsonify({"message": "Review updated"})
+        return jsonify({"error": "Review not found"}), 404
+
+# -----------------------------
+# Delete a review
+# -----------------------------
+@review_bp.route('/review/<int:review_id>', methods=['DELETE'])
+def delete_review(review_id):
+    with Session(engine) as session:
+        review = session.get(Review, review_id)
+        if review:
+            session.delete(review)
+            session.commit()
+            return jsonify({"message": "Review deleted"})
+        return jsonify({"error": "Review not found"}), 404
