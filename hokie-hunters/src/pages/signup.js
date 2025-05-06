@@ -1,96 +1,141 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  Box, Button, Container, TextField, Typography, MenuItem, Alert
-} from '@mui/material'
-import api from '../api'
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Paper,
+  MenuItem
+} from '@mui/material';
 
-const roles = ['student', 'landlord']
+const roles = ['student', 'landlord'];
 
 function Signup() {
-  const [form, setForm] = useState({
-    username: '', email: '', password: '', role: 'student'
-  })
-  const [message, setMessage] = useState(null)
-  const [errors, setErrors] = useState([])
+  const navigate = useNavigate();
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('');
+  const [major, setMajor] = useState('');
+  const [graduationYear, setGraduationYear] = useState('');
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const validate = () => {
-    const err = []
-    if (!form.username.match(/^[a-zA-Z0-9_]{3,}$/)) {
-      err.push('Username must be at least 3 characters and contain only letters, numbers, or underscores.')
-    }
-    if (!form.email.includes('@')) {
-      err.push('Enter a valid email.')
-    }
-    if (form.password.length < 8) {
-      err.push('Password must be at least 8 characters.')
-    }
-    if (!form.password.match(/[A-Z]/) || !form.password.match(/[0-9]/) || !form.password.match(/[\W]/)) {
-      err.push('Password must include an uppercase letter, number, and symbol.')
-    }
-    return err
-  }
+    const payload = { username, email, password };
+    let endpoint = '';
 
-  const handleSubmit = async () => {
-    const validationErrors = validate()
-    if (validationErrors.length > 0) {
-      setErrors(validationErrors)
-      return
+    if (role === 'student') {
+      endpoint = '/signup/student';
+      payload.major = major;
+      payload.graduation_year = parseInt(graduationYear);
+    } else if (role === 'landlord') {
+      endpoint = '/signup/landlord';
+    } else {
+      alert('❌ Invalid role selected.');
+      return;
     }
 
     try {
-      await api.post('/signup', form)
-      setMessage('Account created! You may now log in.')
-      setErrors([])
+      const res = await fetch(`http://localhost:5000${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert('✅ Signup successful! You can now log in.');
+        navigate('/login');
+      } else {
+        alert(`❌ Signup failed: ${data.error}`);
+      }
     } catch (err) {
-      setMessage(null)
-      setErrors([err.response?.data?.error || 'Signup failed.'])
+      console.error(err);
+      alert('❌ Server error. Please try again.');
     }
-  }
+  };
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 10 }}>
-      <Box
-        sx={{
-          p: 4,
-          border: '1px solid #ccc',
-          borderRadius: 2,
-          backgroundColor: '#fff',
-          boxShadow: 3
-        }}
-      >
-        <Typography variant="h5" sx={{ fontWeight: 600, fontFamily: 'Georgia, serif' }} gutterBottom>
-          Create an Account
+    <Box sx={{ mt: 12, display: 'flex', justifyContent: 'center' }}>
+      <Paper elevation={3} sx={{ p: 5, width: 400, borderRadius: 3 }}>
+        <Typography variant="h5" gutterBottom align="center">
+          Create Your Account
         </Typography>
-
-        {message && <Alert severity="success" sx={{ mb: 2 }}>{message}</Alert>}
-        {errors.length > 0 && errors.map((err, i) => (
-          <Alert key={i} severity="error" sx={{ mb: 1 }}>{err}</Alert>
-        ))}
-
-        <Box display="flex" flexDirection="column" gap={2}>
-          <TextField label="Username" name="username" value={form.username} onChange={handleChange} required />
-          <TextField label="Email" name="email" type="email" value={form.email} onChange={handleChange} required />
-          <TextField label="Password" name="password" type="password" value={form.password} onChange={handleChange} required />
+        <form onSubmit={handleSubmit}>
           <TextField
-            select label="Role" name="role" value={form.role} onChange={handleChange}
+            fullWidth
+            label="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            type="email"
+            label="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            type="password"
+            label="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            helperText="Use at least 8 characters, including a number and special symbol"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            select
+            label="Role"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            required
+            margin="normal"
           >
-            {roles.map((role) => (
-              <MenuItem key={role} value={role}>
-                {role.charAt(0).toUpperCase() + role.slice(1)}
-              </MenuItem>
+            {roles.map((r) => (
+              <MenuItem key={r} value={r}>{r}</MenuItem>
             ))}
           </TextField>
-          <Button onClick={handleSubmit} variant="contained" color="primary" size="large">
+
+          {role === 'student' && (
+            <>
+              <TextField
+                fullWidth
+                label="Major"
+                value={major}
+                onChange={(e) => setMajor(e.target.value)}
+                margin="normal"
+              />
+              <TextField
+                fullWidth
+                label="Graduation Year"
+                type="number"
+                value={graduationYear}
+                onChange={(e) => setGraduationYear(e.target.value)}
+                margin="normal"
+              />
+            </>
+          )}
+
+          <Button fullWidth variant="contained" type="submit" sx={{ mt: 2 }}>
             Sign Up
           </Button>
-        </Box>
-      </Box>
-    </Container>
-  )
+          <Button fullWidth sx={{ mt: 1 }} onClick={() => navigate('/login')}>
+            Already have an account? Log in
+          </Button>
+        </form>
+      </Paper>
+    </Box>
+  );
 }
 
-export default Signup
+export default Signup;

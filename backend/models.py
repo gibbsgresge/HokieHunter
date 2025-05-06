@@ -18,6 +18,9 @@ class Users(Base):
     UserID: Mapped[int] = mapped_column(Integer, primary_key=True)
     Email: Mapped[str] = mapped_column(String(100), nullable=False)
     Role: Mapped[str] = mapped_column(Enum('student', 'landlord', 'admin'), nullable=False)
+    Username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    PasswordHash: Mapped[str] = mapped_column(Text, nullable=False)
+
 
     __mapper_args__ = {
         'polymorphic_on': Role,

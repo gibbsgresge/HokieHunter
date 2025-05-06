@@ -4,6 +4,7 @@ from routes import register_routes
 from db import engine  # <- you now import engine from db.py (no circular import)
 from models import Base
 
+
 app = Flask(__name__)
 CORS(app)
 

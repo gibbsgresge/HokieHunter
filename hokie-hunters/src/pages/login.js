@@ -1,57 +1,91 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  Container, TextField, Button, Typography, Alert, Box
-} from '@mui/material'
-import api from '../api'
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Paper
+} from '@mui/material';
 
 function Login() {
-  const [form, setForm] = useState({ username: '', password: '' })
-  const [error, setError] = useState(null)
-  const [success, setSuccess] = useState(false)
+  const navigate = useNavigate();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
-  }
-
-  const handleLogin = async () => {
-    try {
-      await api.post('/login', form)
-      setError(null)
-      setSuccess(true)
-    } catch (err) {
-      setSuccess(false)
-      setError(err.response?.data?.error || 'Login failed.')
+  // 🔁 Redirect if already logged in
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem('username');
+    if (isLoggedIn) {
+      navigate('/');
     }
-  }
+  }, [navigate]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const payload = { username, password };
+
+    try {
+      const res = await fetch('http://localhost:5000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        // Store in localStorage
+        localStorage.setItem('username', data.username || username);
+        localStorage.setItem('user_id', data.user_id);
+        localStorage.setItem('role', data.role);
+
+        alert(`👋 Welcome, ${data.username || username}!`);
+        navigate('/');
+      } else {
+        alert(`❌ Login failed: ${data.error}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('❌ Server error. Please try again.');
+    }
+  };
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 10 }}>
-      <Box
-        sx={{
-          p: 4,
-          border: '1px solid #ccc',
-          borderRadius: 2,
-          backgroundColor: '#fff',
-          boxShadow: 3
-        }}
-      >
-        <Typography variant="h5" sx={{ fontWeight: 600, fontFamily: 'Georgia, serif' }} gutterBottom>
-          Welcome Back
+    <Box sx={{ mt: 12, display: 'flex', justifyContent: 'center' }}>
+      <Paper elevation={3} sx={{ p: 5, width: 400, borderRadius: 3 }}>
+        <Typography variant="h5" gutterBottom align="center">
+          Login
         </Typography>
-
-        {success && <Alert severity="success" sx={{ mb: 2 }}>Logged in successfully!</Alert>}
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-
-        <Box display="flex" flexDirection="column" gap={2}>
-          <TextField label="Username" name="username" value={form.username} onChange={handleChange} />
-          <TextField label="Password" name="password" type="password" value={form.password} onChange={handleChange} />
-          <Button onClick={handleLogin} variant="contained" color="primary" size="large">
+        <form onSubmit={handleSubmit}>
+          <TextField
+            fullWidth
+            label="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            type="password"
+            label="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            margin="normal"
+          />
+          <Button fullWidth variant="contained" type="submit" sx={{ mt: 2 }}>
             Log In
           </Button>
-        </Box>
-      </Box>
-    </Container>
-  )
+          <Button fullWidth sx={{ mt: 1 }} onClick={() => navigate('/signup')}>
+            Don't have an account? Sign up
+          </Button>
+        </form>
+      </Paper>
+    </Box>
+  );
 }
 
-export default Login
+export default Login;

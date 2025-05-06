@@ -13,6 +13,7 @@ from .amenities import amenities_bp
 from .favorite import favorite_bp
 from .leasetransfer import leasetransfer_bp
 from .review import review_bp
+from .auth import auth_bp
 
 def register_routes(app):
     app.register_blueprint(user_bp)
@@ -30,3 +31,4 @@ def register_routes(app):
     app.register_blueprint(favorite_bp)
     app.register_blueprint(leasetransfer_bp)
     app.register_blueprint(review_bp)
+    app.register_blueprint(auth_bp)
