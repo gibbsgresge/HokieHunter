@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy.orm import Session
-from models import Favorite
+from models import Favorite, Property, Users, Students
+from sqlalchemy.orm import aliased
 from db import engine
 import datetime
 
@@ -12,16 +13,33 @@ favorite_bp = Blueprint('favorite_bp', __name__)
 @favorite_bp.route('/favorite', methods=['GET'])
 def get_favorites():
     with Session(engine) as session:
-        favorites = session.query(Favorite).all()
+        StudentUser = aliased(Users)
+
+        favorites = (
+            session.query(
+                Favorite.FavoriteID,
+                Favorite.Comments,
+                Favorite.DateSaved,
+                Property.Name.label("PropertyName"),
+                StudentUser.Username.label("StudentUsername"),
+                StudentUser.Email.label("StudentEmail")
+            )
+            .join(Property, Favorite.PropertyID == Property.PropertyID)
+            .join(Students, Favorite.StudentID == Students.StudentID)
+            .join(StudentUser, Students.StudentID == StudentUser.UserID)
+            .all()
+        )
+
         return jsonify([
             {
-                "FavoriteID": f.FavoriteID,
-                "StudentID": f.StudentID,
-                "PropertyID": f.PropertyID,
-                "DateSaved": f.DateSaved.isoformat() if f.DateSaved else None,
-                "Comments": f.Comments
+                "FavoriteID": fav.FavoriteID,
+                "PropertyName": fav.PropertyName,
+                "StudentUsername": fav.StudentUsername,
+                "StudentEmail": fav.StudentEmail,
+                "DateSaved": fav.DateSaved.isoformat() if fav.DateSaved else None,
+                "Comments": fav.Comments
             }
-            for f in favorites
+            for fav in favorites
         ])
 
 # -----------------------------

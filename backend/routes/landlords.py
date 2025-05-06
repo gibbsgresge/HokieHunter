@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy.orm import Session
-from models import Landlords
+from models import Landlords, Property
 from db import engine  # Make sure engine is accessible here
 
 landlords_bp = Blueprint('landlords_bp', __name__)
@@ -77,3 +77,20 @@ def delete_landlord(landlord_id):
             session.commit()
             return jsonify({"message": "Landlord deleted"})
         return jsonify({"error": "Landlord not found"}), 404
+
+
+#VERY IMPORTANT ROUTE LANDLORD BEING LINKED WITH PROPORTY 
+@landlords_bp.route('/landlord/<int:landlord_id>/properties', methods=['GET'])
+def get_landlord_properties(landlord_id):
+    with Session(engine) as session:
+        properties = session.query(Property).filter_by(LandlordID=landlord_id).all()
+        return jsonify([
+            {
+                "PropertyID": p.PropertyID,
+                "Name": p.Name,
+                "Location": p.Location,
+                "Price": p.Price,
+                "RoomType": p.RoomType
+            }
+            for p in properties
+        ])

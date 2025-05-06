@@ -91,10 +91,12 @@ class Students(Users):
 class Property(Base):
     __tablename__ = 'property'
     PropertyID: Mapped[int] = mapped_column(Integer, primary_key=True)
+    LandlordID: Mapped[int] = mapped_column(ForeignKey('landlords.LandlordID', ondelete='SET NULL'))
     Name: Mapped[Optional[str]] = mapped_column(String(100))
     Location: Mapped[Optional[str]] = mapped_column(String(255))
     Price: Mapped[Optional[str]] = mapped_column(String(50))
     RoomType: Mapped[Optional[str]] = mapped_column(String(50))
+
 
 
 # ----------------------------------------------------------------------

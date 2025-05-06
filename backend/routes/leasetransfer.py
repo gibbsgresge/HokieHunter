@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy.orm import Session
-from models import Leasetransfer
+from models import Leasetransfer, Property, Students, Users
 from db import engine
+from sqlalchemy.orm import aliased
 import datetime
 
 leasetransfer_bp = Blueprint('leasetransfer_bp', __name__)
@@ -10,14 +11,31 @@ leasetransfer_bp = Blueprint('leasetransfer_bp', __name__)
 # Get all lease transfers
 # -----------------------------
 @leasetransfer_bp.route('/leasetransfer', methods=['GET'])
-def get_leasetransfers():
+def get_lease_transfers():
     with Session(engine) as session:
-        transfers = session.query(Leasetransfer).all()
+        StudentUser = aliased(Users)
+
+        transfers = (
+            session.query(
+                Leasetransfer.TransferID,
+                Leasetransfer.LeaseEndDate,
+                Leasetransfer.TransferStatus,
+                Property.Name.label("PropertyName"),
+                StudentUser.Username.label("StudentUsername"),
+                StudentUser.Email.label("StudentEmail")
+            )
+            .join(Property, Leasetransfer.PropertyID == Property.PropertyID)
+            .join(Students, Leasetransfer.StudentID == Students.StudentID)
+            .join(StudentUser, Students.StudentID == StudentUser.UserID)
+            .all()
+        )
+
         return jsonify([
             {
                 "TransferID": t.TransferID,
-                "StudentID": t.StudentID,
-                "PropertyID": t.PropertyID,
+                "PropertyName": t.PropertyName,
+                "StudentUsername": t.StudentUsername,
+                "StudentEmail": t.StudentEmail,
                 "LeaseEndDate": t.LeaseEndDate.isoformat() if t.LeaseEndDate else None,
                 "TransferStatus": t.TransferStatus
             }

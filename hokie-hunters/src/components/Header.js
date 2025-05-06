@@ -1,3 +1,4 @@
+// Header.js
 import React from 'react';
 import { AppBar, Toolbar, Typography, Box, Button } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
@@ -5,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 function Header() {
   const navigate = useNavigate();
   const username = localStorage.getItem('username');
+  const role = localStorage.getItem('role');
 
   const handleLogout = () => {
     localStorage.removeItem('username');
@@ -35,6 +37,14 @@ function Header() {
               >
                 Hello, {username}
               </Typography>
+
+              {(role === 'landlord' || role === 'student') && (
+                  <Button onClick={() => navigate('/account')} color="inherit" sx={{ mr: 2 }}>
+                      My Account
+                    </Button>
+                )}
+
+
               <Button
                 onClick={handleLogout}
                 color="secondary"
