@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy.orm import Session
-from models import Review
+from models import Review, Property
 from db import engine
-
+from sqlalchemy.orm import joinedload
 review_bp = Blueprint('review_bp', __name__)
 
 # -----------------------------
@@ -11,18 +11,26 @@ review_bp = Blueprint('review_bp', __name__)
 @review_bp.route('/review', methods=['GET'])
 def get_reviews():
     with Session(engine) as session:
-        reviews = session.query(Review).all()
+        reviews = (
+            session.query(
+                Review.ReviewID,
+                Review.Rating,
+                Review.Comments,
+                Property.Name.label("PropertyName")
+            )
+            .join(Property, Review.PropertyID == Property.PropertyID)
+            .all()
+        )
+
         return jsonify([
             {
                 "ReviewID": r.ReviewID,
-                "StudentID": r.StudentID,
-                "PropertyID": r.PropertyID,
                 "Rating": r.Rating,
-                "Comments": r.Comments
+                "Comments": r.Comments,
+                "PropertyName": r.PropertyName
             }
             for r in reviews
         ])
-
 # -----------------------------
 # Get review by ID
 # -----------------------------

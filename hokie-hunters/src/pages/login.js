@@ -13,7 +13,7 @@ function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
-  // 🔁 Redirect if already logged in
+  //  Redirect if already logged in
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('username');
     if (isLoggedIn) {
@@ -41,14 +41,14 @@ function Login() {
         localStorage.setItem('user_id', data.user_id);
         localStorage.setItem('role', data.role);
 
-        alert(`👋 Welcome, ${data.username || username}!`);
+        alert(` Welcome, ${data.username || username}!`);
         navigate('/');
       } else {
-        alert(`❌ Login failed: ${data.error}`);
+        alert(` Login failed: ${data.error}`);
       }
     } catch (err) {
       console.error(err);
-      alert('❌ Server error. Please try again.');
+      alert(' Server error. Please try again.');
     }
   };
 

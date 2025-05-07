@@ -10,7 +10,7 @@ const sections = [
   { label: 'Favorites', path: '/entity/favorite', image: '/images/favorite.jpg' },
   { label: 'Roommate Search', path: '/entity/roommatesearch', image: '/images/roomate.jpg' },
   { label: 'Commute Info', path: '/entity/commute', image: '/images/commute.jpg' },
-  { label: 'Moving Services', path: '/entity/movingservices', image: '/images/move.jpg' },
+  { label: 'Moving Services', path: '/entity/movingservices', image: '/images/movingservice.jpg' },
   { label: 'Safety Features', path: '/entity/safetyfeatures', image: '/images/safety.jpg' }
 ]
 

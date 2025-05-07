@@ -25,6 +25,7 @@ def get_properties():
 
         return jsonify([
             {
+                "PropertyID": prop.PropertyID,
                 "Name": prop.Name,
                 "Location": prop.Location,
                 "Price": prop.Price,

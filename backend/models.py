@@ -14,6 +14,7 @@ class Base(DeclarativeBase):
 # ----------------------------------------------------------------------
 class Users(Base):
     __tablename__ = 'users'
+    
 
     UserID: Mapped[int] = mapped_column(Integer, primary_key=True)
     Email: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -251,7 +252,7 @@ class Leasetransfer(Base):
     TransferID: Mapped[int] = mapped_column(Integer, primary_key=True)
     StudentID: Mapped[Optional[int]] = mapped_column(Integer)
     PropertyID: Mapped[Optional[int]] = mapped_column(Integer)
-    LeaseEndDate: Mapped[Optional[datetime.date]] = mapped_column(Date)
+    LeaseEndDate: Mapped[Optional[str]] = mapped_column(String(40))
     TransferStatus: Mapped[Optional[str]] = mapped_column(String(50))
 
 class Review(Base):

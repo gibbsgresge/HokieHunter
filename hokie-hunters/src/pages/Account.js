@@ -1,8 +1,7 @@
-// src/pages/Account.js
 import React from 'react';
 import LandlordAccount from './LandlordAccount';
 import StudentAccount from './StudentAccount';
-
+import AdminAccount from './AdminAccount';
 function Account() {
   const role = localStorage.getItem('role');
 
@@ -15,7 +14,7 @@ function Account() {
   }
 
   if (role === 'admin') {
-    return <div style={{ marginTop: 80, padding: 20 }}>Admin Dashboard Coming Soon</div>;
+    return <AdminAccount />;
   }
 
   return <div style={{ marginTop: 80, padding: 20 }}>You must be logged in to view this page.</div>;

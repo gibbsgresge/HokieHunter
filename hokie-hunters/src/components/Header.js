@@ -38,7 +38,7 @@ function Header() {
                 Hello, {username}
               </Typography>
 
-              {(role === 'landlord' || role === 'student') && (
+              {(role === 'landlord' || role === 'student' ) && (
                   <Button onClick={() => navigate('/account')} color="inherit" sx={{ mr: 2 }}>
                       My Account
                     </Button>

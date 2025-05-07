@@ -1,12 +1,13 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy.orm import Session
-from models import Students
-from db import engine  # or wherever you create the engine
+from models import Students, Leasetransfer, Review, Favorite, Roommatesearch, Property
+from db import engine
+import datetime
 
 students_bp = Blueprint('students_bp', __name__)
 
 # -----------------------------
-# Get all students
+# Students CRUD
 # -----------------------------
 @students_bp.route('/students', methods=['GET'])
 def get_students():
@@ -19,13 +20,9 @@ def get_students():
                 "Role": s.Role,
                 "Major": s.Major,
                 "GraduationYear": s.GraduationYear
-            }
-            for s in students
+            } for s in students
         ])
 
-# -----------------------------
-# Get a single student
-# -----------------------------
 @students_bp.route('/students/<int:student_id>', methods=['GET'])
 def get_student(student_id):
     with Session(engine) as session:
@@ -40,16 +37,13 @@ def get_student(student_id):
             })
         return jsonify({"error": "Student not found"}), 404
 
-# -----------------------------
-# Create a new student
-# -----------------------------
 @students_bp.route('/students', methods=['POST'])
 def create_student():
     data = request.get_json()
     with Session(engine) as session:
         new_student = Students(
             Email=data['Email'],
-            Role='student',  # hardcoded to 'student'
+            Role='student',
             Major=data.get('Major'),
             GraduationYear=data.get('GraduationYear')
         )
@@ -57,9 +51,6 @@ def create_student():
         session.commit()
         return jsonify({"message": "Student created", "StudentID": new_student.StudentID}), 201
 
-# -----------------------------
-# Update student
-# -----------------------------
 @students_bp.route('/students/<int:student_id>', methods=['PUT'])
 def update_student(student_id):
     data = request.get_json()
@@ -73,9 +64,6 @@ def update_student(student_id):
             return jsonify({"message": "Student updated"})
         return jsonify({"error": "Student not found"}), 404
 
-# -----------------------------
-# Delete student
-# -----------------------------
 @students_bp.route('/students/<int:student_id>', methods=['DELETE'])
 def delete_student(student_id):
     with Session(engine) as session:
@@ -85,3 +73,194 @@ def delete_student(student_id):
             session.commit()
             return jsonify({"message": "Student deleted"})
         return jsonify({"error": "Student not found"}), 404
+
+# -----------------------------
+# Lease Transfers
+# -----------------------------
+@students_bp.route('/student/<int:student_id>/lease_transfers', methods=['GET'])
+def get_lease_transfers(student_id):
+    with Session(engine) as session:
+        results = (
+            session.query(Leasetransfer, Property)
+            .join(Property, Leasetransfer.PropertyID == Property.PropertyID)
+            .filter(Leasetransfer.StudentID == student_id)
+            .all()
+        )
+        return jsonify([
+            {
+                "TransferID": lease.TransferID,
+                "LeaseEndDate": lease.LeaseEndDate,
+                "TransferStatus": lease.TransferStatus,
+                "PropertyName": prop.Name
+            } for lease, prop in results
+        ])
+
+@students_bp.route('/lease_transfers', methods=['POST'])
+def create_lease_transfer():
+    data = request.get_json()
+    with Session(engine) as session:
+        new_lease = Leasetransfer(
+            StudentID=data['StudentID'],
+            PropertyID=data['PropertyID'],
+            LeaseEndDate=data['LeaseEndDate'],
+            TransferStatus=data['TransferStatus']
+        )
+        session.add(new_lease)
+        session.commit()
+        return jsonify({'message': 'Lease transfer added'}), 201
+
+@students_bp.route('/lease_transfers/<int:transfer_id>', methods=['PUT'])
+def update_lease_transfer(transfer_id):
+    data = request.get_json()
+    with Session(engine) as session:
+        lease = session.get(Leasetransfer, transfer_id)
+        if lease:
+            lease.LeaseEndDate = data.get('LeaseEndDate', lease.LeaseEndDate)
+            lease.TransferStatus = data.get('TransferStatus', lease.TransferStatus)
+            session.commit()
+            return jsonify({'message': 'Lease transfer updated'})
+        return jsonify({'error': 'Lease transfer not found'}), 404
+
+@students_bp.route('/lease_transfers/<int:transfer_id>', methods=['DELETE'])
+def delete_lease_transfer(transfer_id):
+    with Session(engine) as session:
+        lease = session.get(Leasetransfer, transfer_id)
+        if lease:
+            session.delete(lease)
+            session.commit()
+            return jsonify({'message': 'Lease transfer deleted'})
+        return jsonify({'error': 'Lease transfer not found'}), 404
+
+# -----------------------------
+# Reviews
+# -----------------------------
+@students_bp.route('/student/<int:student_id>/reviews', methods=['GET'])
+def get_reviews(student_id):
+    with Session(engine) as session:
+        results = (
+            session.query(Review, Property)
+            .join(Property, Review.PropertyID == Property.PropertyID)
+            .filter(Review.StudentID == student_id)
+            .all()
+        )
+        return jsonify([
+            {
+                "ReviewID": r.ReviewID,
+                "Rating": r.Rating,
+                "Comments": r.Comments,
+                "PropertyName": p.Name
+            } for r, p in results
+        ])
+
+@students_bp.route('/reviews', methods=['POST'])
+def create_review():
+    data = request.get_json()
+    with Session(engine) as session:
+        new_review = Review(
+            StudentID=data['StudentID'],
+            PropertyID=data['PropertyID'],
+            Rating=data['Rating'],
+            Comments=data['Comments']
+        )
+        session.add(new_review)
+        session.commit()
+        return jsonify({'message': 'Review added'}), 201
+
+@students_bp.route('/reviews/<int:review_id>', methods=['PUT'])
+def update_review(review_id):
+    data = request.get_json()
+    with Session(engine) as session:
+        review = session.get(Review, review_id)
+        if review:
+            review.Rating = data.get('Rating', review.Rating)
+            review.Comments = data.get('Comments', review.Comments)
+            session.commit()
+            return jsonify({'message': 'Review updated'})
+        return jsonify({'error': 'Review not found'}), 404
+
+@students_bp.route('/reviews/<int:review_id>', methods=['DELETE'])
+def delete_review(review_id):
+    with Session(engine) as session:
+        review = session.get(Review, review_id)
+        if review:
+            session.delete(review)
+            session.commit()
+            return jsonify({'message': 'Review deleted'})
+        return jsonify({'error': 'Review not found'}), 404
+
+# -----------------------------
+# Favorites
+# -----------------------------
+@students_bp.route('/student/<int:student_id>/favorites', methods=['GET'])
+def get_favorites(student_id):
+    with Session(engine) as session:
+        results = (
+            session.query(Favorite, Property)
+            .join(Property, Favorite.PropertyID == Property.PropertyID)
+            .filter(Favorite.StudentID == student_id)
+            .all()
+        )
+        return jsonify([
+            {
+                "FavoriteID": f.FavoriteID,
+                "Comments": f.Comments,
+                "PropertyName": p.Name
+            } for f, p in results
+        ])
+
+@students_bp.route('/favorites', methods=['POST'])
+def create_favorite():
+    data = request.get_json()
+    with Session(engine) as session:
+        new_fav = Favorite(
+            StudentID=data['StudentID'],
+            PropertyID=data['PropertyID'],
+            Comments=data['Comments'],
+            DateSaved=datetime.date.today()
+        )
+        session.add(new_fav)
+        session.commit()
+        return jsonify({'message': 'Favorite added'}), 201
+
+@students_bp.route('/favorites/<int:favorite_id>', methods=['PUT'])
+def update_favorite(favorite_id):
+    data = request.get_json()
+    with Session(engine) as session:
+        favorite = session.get(Favorite, favorite_id)
+        if favorite:
+            favorite.Comments = data.get('Comments', favorite.Comments)
+            session.commit()
+            return jsonify({'message': 'Favorite updated'})
+        return jsonify({'error': 'Favorite not found'}), 404
+
+@students_bp.route('/favorites/<int:favorite_id>', methods=['DELETE'])
+def delete_favorite(favorite_id):
+    with Session(engine) as session:
+        favorite = session.get(Favorite, favorite_id)
+        if favorite:
+            session.delete(favorite)
+            session.commit()
+            return jsonify({'message': 'Favorite deleted'})
+        return jsonify({'error': 'Favorite not found'}), 404
+
+# -----------------------------
+# Roommate Search
+# -----------------------------
+@students_bp.route('/student/<int:student_id>/roommate_search', methods=['GET'])
+def get_roommate_search(student_id):
+    with Session(engine) as session:
+        prefs = session.query(Roommatesearch).filter_by(StudentID=student_id).first()
+        return jsonify({'Preferences': prefs.Preferences if prefs else ''})
+
+@students_bp.route('/student/<int:student_id>/roommate_search', methods=['PUT'])
+def update_roommate_search(student_id):
+    data = request.get_json()
+    with Session(engine) as session:
+        existing = session.query(Roommatesearch).filter_by(StudentID=student_id).first()
+        if existing:
+            existing.Preferences = data['Preferences']
+        else:
+            new_prefs = Roommatesearch(StudentID=student_id, Preferences=data['Preferences'])
+            session.add(new_prefs)
+        session.commit()
+        return jsonify({'message': 'Preferences updated'}), 200

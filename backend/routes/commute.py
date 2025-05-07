@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy.orm import Session
-from models import Commute
+from models import Commute, Property
 from db import engine  # Use db.py, not app.py
 
 commute_bp = Blueprint('commute_bp', __name__)
@@ -11,14 +11,25 @@ commute_bp = Blueprint('commute_bp', __name__)
 @commute_bp.route('/commute', methods=['GET'])
 def get_commutes():
     with Session(engine) as session:
-        commutes = session.query(Commute).all()
+        commutes = (
+            session.query(
+                Commute.CommuteID,
+                Commute.Time,
+                Commute.Distance,
+                Commute.ServiceID,
+                Property.Name.label("PropertyName")
+            )
+            .join(Property, Commute.PropertyID == Property.PropertyID)
+            .all()
+        )
+
         return jsonify([
             {
                 "CommuteID": c.CommuteID,
-                "PropertyID": c.PropertyID,
                 "Time": c.Time,
                 "Distance": c.Distance,
-                "ServiceID": c.ServiceID
+                "ServiceID": c.ServiceID,
+                "PropertyName": c.PropertyName
             }
             for c in commutes
         ])

@@ -35,7 +35,7 @@ def get_lease_transfers():
                 "PropertyName": t.PropertyName,
                 "StudentUsername": t.StudentUsername,
                 "StudentEmail": t.StudentEmail,
-                "LeaseEndDate": t.LeaseEndDate.isoformat() if t.LeaseEndDate else None,
+                "LeaseEndDate": t.LeaseEndDate,
                 "TransferStatus": t.TransferStatus
             }
             for t in transfers

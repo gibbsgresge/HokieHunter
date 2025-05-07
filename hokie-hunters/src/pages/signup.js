@@ -33,7 +33,7 @@ function Signup() {
     } else if (role === 'landlord') {
       endpoint = '/signup/landlord';
     } else {
-      alert('❌ Invalid role selected.');
+      alert(' Invalid role selected.');
       return;
     }
 
@@ -47,14 +47,14 @@ function Signup() {
       const data = await res.json();
 
       if (res.ok) {
-        alert('✅ Signup successful! You can now log in.');
+        alert('Signup successful! You can now log in.');
         navigate('/login');
       } else {
-        alert(`❌ Signup failed: ${data.error}`);
+        alert(`Signup failed: ${data.error}`);
       }
     } catch (err) {
       console.error(err);
-      alert('❌ Server error. Please try again.');
+      alert('Server error. Please try again.');
     }
   };
 
