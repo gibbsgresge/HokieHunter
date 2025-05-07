@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy.orm import Session
-from models import Safetyfeatures
+from models import Safetyfeatures, Property
 from db import engine
 
 safetyfeatures_bp = Blueprint('safetyfeatures_bp', __name__)
@@ -11,14 +11,23 @@ safetyfeatures_bp = Blueprint('safetyfeatures_bp', __name__)
 @safetyfeatures_bp.route('/safetyfeatures', methods=['GET'])
 def get_safety_features():
     with Session(engine) as session:
-        features = session.query(Safetyfeatures).all()
+        results = (
+            session.query(
+                Safetyfeatures.FeatureID,
+                Safetyfeatures.FeatureDescription,
+                Property.Name.label("PropertyName")
+            )
+            .join(Property, Safetyfeatures.PropertyID == Property.PropertyID)
+            .all()
+        )
+
         return jsonify([
             {
                 "FeatureID": f.FeatureID,
-                "PropertyID": f.PropertyID,
-                "FeatureDescription": f.FeatureDescription
+                "FeatureDescription": f.FeatureDescription,
+                "PropertyName": f.PropertyName
             }
-            for f in features
+            for f in results
         ])
 
 # -----------------------------
@@ -57,14 +66,28 @@ def create_safety_feature():
 @safetyfeatures_bp.route('/safetyfeatures/<int:feature_id>', methods=['PUT'])
 def update_safety_feature(feature_id):
     data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "No input data provided"}), 400
+
     with Session(engine) as session:
         feature = session.get(Safetyfeatures, feature_id)
-        if feature:
-            feature.PropertyID = data.get('PropertyID', feature.PropertyID)
-            feature.FeatureDescription = data.get('FeatureDescription', feature.FeatureDescription)
-            session.commit()
-            return jsonify({"message": "Safety feature updated"})
-        return jsonify({"error": "Safety feature not found"}), 404
+        if not feature:
+            return jsonify({"error": "Safety feature not found"}), 404
+
+        # Optional updates with fallback to current values
+        if 'PropertyID' in data:
+            feature.PropertyID = data['PropertyID']
+        if 'FeatureDescription' in data:
+            feature.FeatureDescription = data['FeatureDescription']
+
+        session.commit()
+        return jsonify({
+            "message": "Safety feature updated",
+            "FeatureID": feature.FeatureID,
+            "PropertyID": feature.PropertyID,
+            "FeatureDescription": feature.FeatureDescription
+        })
 
 # -----------------------------
 # Delete a safety feature

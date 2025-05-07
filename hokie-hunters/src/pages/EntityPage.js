@@ -56,6 +56,7 @@ function EntityPage() {
     try {
       const res = await fetch(`http://localhost:5000/${endpointMap[entityName]}`);
       const json = await res.json();
+      console.log('Fetched data after save:', json);
       setData(json);
     } catch (err) {
       console.error('Error fetching data:', err);
@@ -66,6 +67,10 @@ function EntityPage() {
 
   useEffect(() => {
     fetchData();
+    return () => {
+      setEditingRow(null);
+      setEditData({});
+    };
   }, [entityName]);
 
   const handleDelete = async (id) => {
@@ -81,7 +86,7 @@ function EntityPage() {
 
   const startEditing = (entry) => {
     setEditingRow(entry[idField]);
-    setEditData(entry);
+    setEditData({ ...entry });
   };
 
   const cancelEditing = () => {
@@ -91,6 +96,7 @@ function EntityPage() {
 
   const handleSave = async () => {
     try {
+      console.log('Sending updated data:', editData);
       await fetch(`http://localhost:5000/${endpointMap[entityName]}/${editingRow}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -109,10 +115,12 @@ function EntityPage() {
   const headers = Object.keys(data[0]).filter((key) => {
     const lower = key.toLowerCase();
     return (
-      !(lower === 'id' || lower.endsWith('id') || lower.includes('id')) ||
-      lower.includes('name') || lower.includes('email')
+      !(lower === 'id' || (lower.endsWith('id') && key !== idField)) ||
+      lower.includes('name') ||
+      lower.includes('email')
     );
   });
+  
 
   return (
     <Container maxWidth="lg" sx={{ mt: 8 }}>
@@ -147,7 +155,7 @@ function EntityPage() {
                     <TableCell key={field}>
                       {editingRow === entry[idField] ? (
                         <TextField
-                          value={editData[field]}
+                          value={editData[field] ?? ''}
                           onChange={(e) =>
                             setEditData({ ...editData, [field]: e.target.value })
                           }

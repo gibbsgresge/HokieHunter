@@ -1,10 +1,11 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy.orm import Session
-from models import Landlords, Property
+from models import Landlords, Property, Movingservices, Safetyfeatures, Commute
 from db import engine  # Make sure engine is accessible here
 
 landlords_bp = Blueprint('landlords_bp', __name__)
-
+def is_property_owned_by_landlord(session, property_id, landlord_id):
+    return session.query(Property).filter_by(PropertyID=property_id, LandlordID=landlord_id).first() is not None
 # -----------------------------
 # Get all landlords
 # -----------------------------
@@ -94,3 +95,188 @@ def get_landlord_properties(landlord_id):
             }
             for p in properties
         ])
+    
+
+
+
+# -------------------------------
+# SAFETY FEATURES CRUD
+# -------------------------------
+
+@landlords_bp.route('/landlord/<int:landlord_id>/safetyfeatures', methods=['GET'])
+def get_safetyfeatures_by_landlord(landlord_id):
+    with Session(engine) as session:
+        features = (
+            session.query(Safetyfeatures)
+            .join(Property, Safetyfeatures.PropertyID == Property.PropertyID)
+            .filter(Property.LandlordID == landlord_id)
+            .all()
+        )
+        return jsonify([
+            {
+                "FeatureID": f.FeatureID,
+                "PropertyID": f.PropertyID,
+                "FeatureDescription": f.FeatureDescription
+            } for f in features
+        ])
+
+@landlords_bp.route('/landlord/<int:landlord_id>/safetyfeatures', methods=['POST'])
+def create_safetyfeature_by_landlord(landlord_id):
+    data = request.get_json()
+    with Session(engine) as session:
+        if not is_property_owned_by_landlord(session, data.get('PropertyID'), landlord_id):
+            return jsonify({"error": "Invalid property"}), 403
+
+        new_feature = Safetyfeatures(
+            PropertyID=data.get('PropertyID'),
+            FeatureDescription=data.get('FeatureDescription')
+        )
+        session.add(new_feature)
+        session.commit()
+        return jsonify({"message": "Safety feature created", "FeatureID": new_feature.FeatureID}), 201
+
+@landlords_bp.route('/landlord/<int:landlord_id>/safetyfeatures/<int:feature_id>', methods=['PUT'])
+def update_safetyfeature_by_landlord(landlord_id, feature_id):
+    data = request.get_json()
+    with Session(engine) as session:
+        feature = session.get(Safetyfeatures, feature_id)
+        if not feature:
+            return jsonify({"error": "Safety feature not found"}), 404
+        if not is_property_owned_by_landlord(session, feature.PropertyID, landlord_id):
+            return jsonify({"error": "Not authorized"}), 403
+
+        feature.FeatureDescription = data.get('FeatureDescription', feature.FeatureDescription)
+        session.commit()
+        return jsonify({"message": "Safety feature updated"})
+
+@landlords_bp.route('/landlord/<int:landlord_id>/safetyfeatures/<int:feature_id>', methods=['DELETE'])
+def delete_safetyfeature_by_landlord(landlord_id, feature_id):
+    with Session(engine) as session:
+        feature = session.get(Safetyfeatures, feature_id)
+        if not feature or not is_property_owned_by_landlord(session, feature.PropertyID, landlord_id):
+            return jsonify({"error": "Not authorized or not found"}), 404
+        session.delete(feature)
+        session.commit()
+        return jsonify({"message": "Safety feature deleted"})
+
+# -------------------------------
+# MOVING SERVICES CRUD
+# -------------------------------
+
+@landlords_bp.route('/landlord/<int:landlord_id>/movingservices', methods=['GET'])
+def get_movingservices_by_landlord(landlord_id):
+    with Session(engine) as session:
+        services = (
+            session.query(Movingservices)
+            .join(Property, Movingservices.PropertyID == Property.PropertyID)
+            .filter(Property.LandlordID == landlord_id)
+            .all()
+        )
+        return jsonify([
+            {
+                "ServiceID": s.ServiceID,
+                "PropertyID": s.PropertyID,
+                "CompanyName": s.CompanyName,
+                "ContactInfo": s.ContactInfo
+            } for s in services
+        ])
+
+@landlords_bp.route('/landlord/<int:landlord_id>/movingservices', methods=['POST'])
+def create_movingservice_by_landlord(landlord_id):
+    data = request.get_json()
+    with Session(engine) as session:
+        if not is_property_owned_by_landlord(session, data.get('PropertyID'), landlord_id):
+            return jsonify({"error": "Invalid property"}), 403
+
+        new_service = Movingservices(
+            PropertyID=data.get('PropertyID'),
+            CompanyName=data.get('CompanyName'),
+            ContactInfo=data.get('ContactInfo')
+        )
+        session.add(new_service)
+        session.commit()
+        return jsonify({"message": "Moving service created", "ServiceID": new_service.ServiceID}), 201
+
+@landlords_bp.route('/landlord/<int:landlord_id>/movingservices/<int:service_id>', methods=['PUT'])
+def update_movingservice_by_landlord(landlord_id, service_id):
+    data = request.get_json()
+    with Session(engine) as session:
+        service = session.get(Movingservices, service_id)
+        if not service or not is_property_owned_by_landlord(session, service.PropertyID, landlord_id):
+            return jsonify({"error": "Not authorized or not found"}), 404
+
+        service.CompanyName = data.get('CompanyName', service.CompanyName)
+        service.ContactInfo = data.get('ContactInfo', service.ContactInfo)
+        session.commit()
+        return jsonify({"message": "Moving service updated"})
+
+@landlords_bp.route('/landlord/<int:landlord_id>/movingservices/<int:service_id>', methods=['DELETE'])
+def delete_movingservice_by_landlord(landlord_id, service_id):
+    with Session(engine) as session:
+        service = session.get(Movingservices, service_id)
+        if not service or not is_property_owned_by_landlord(session, service.PropertyID, landlord_id):
+            return jsonify({"error": "Not authorized or not found"}), 404
+        session.delete(service)
+        session.commit()
+        return jsonify({"message": "Moving service deleted"})
+
+# -------------------------------
+# COMMUTE INFO CRUD
+# -------------------------------
+
+@landlords_bp.route('/landlord/<int:landlord_id>/commute', methods=['GET'])
+def get_commute_by_landlord(landlord_id):
+    with Session(engine) as session:
+        commutes = (
+            session.query(Commute)
+            .join(Property, Commute.PropertyID == Property.PropertyID)
+            .filter(Property.LandlordID == landlord_id)
+            .all()
+        )
+        return jsonify([
+            {
+                "CommuteID": c.CommuteID,
+                "PropertyID": c.PropertyID,
+                "Time": c.Time,
+                "Distance": c.Distance
+            } for c in commutes
+        ])
+
+@landlords_bp.route('/landlord/<int:landlord_id>/commute', methods=['POST'])
+def create_commute_by_landlord(landlord_id):
+    data = request.get_json()
+    with Session(engine) as session:
+        if not is_property_owned_by_landlord(session, data.get('PropertyID'), landlord_id):
+            return jsonify({"error": "Invalid property"}), 403
+
+        new_commute = Commute(
+            PropertyID=data.get('PropertyID'),
+            Time=data.get('Time'),
+            Distance=data.get('Distance')
+        )
+        session.add(new_commute)
+        session.commit()
+        return jsonify({"message": "Commute info created", "CommuteID": new_commute.CommuteID}), 201
+
+@landlords_bp.route('/landlord/<int:landlord_id>/commute/<int:commute_id>', methods=['PUT'])
+def update_commute_by_landlord(landlord_id, commute_id):
+    data = request.get_json()
+    with Session(engine) as session:
+        commute = session.get(Commute, commute_id)
+        if not commute or not is_property_owned_by_landlord(session, commute.PropertyID, landlord_id):
+            return jsonify({"error": "Not authorized or not found"}), 404
+
+        commute.Time = data.get('Time', commute.Time)
+        commute.Distance = data.get('Distance', commute.Distance)
+        session.commit()
+        return jsonify({"message": "Commute updated"})
+
+@landlords_bp.route('/landlord/<int:landlord_id>/commute/<int:commute_id>', methods=['DELETE'])
+def delete_commute_by_landlord(landlord_id, commute_id):
+    with Session(engine) as session:
+        commute = session.get(Commute, commute_id)
+        if not commute or not is_property_owned_by_landlord(session, commute.PropertyID, landlord_id):
+            return jsonify({"error": "Not authorized or not found"}), 404
+        session.delete(commute)
+        session.commit()
+        return jsonify({"message": "Commute deleted"})

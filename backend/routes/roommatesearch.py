@@ -1,7 +1,9 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy.orm import Session
-from models import Roommatesearch
+from models import Roommatesearch, Students, Users
 from db import engine
+from sqlalchemy.orm import aliased
+
 
 roommatesearch_bp = Blueprint('roommatesearch_bp', __name__)
 
@@ -11,14 +13,28 @@ roommatesearch_bp = Blueprint('roommatesearch_bp', __name__)
 @roommatesearch_bp.route('/roommatesearch', methods=['GET'])
 def get_roommate_searches():
     with Session(engine) as session:
-        searches = session.query(Roommatesearch).all()
+        StudentUser = aliased(Users)
+
+        results = (
+            session.query(
+                Roommatesearch.SearchID,
+                Roommatesearch.Preferences,
+                StudentUser.Username.label("StudentUsername"),
+                StudentUser.Email.label("StudentEmail")
+            )
+            .join(Students, Roommatesearch.StudentID == Students.StudentID)
+            .join(StudentUser, Students.StudentID == StudentUser.UserID)
+            .all()
+        )
+
         return jsonify([
             {
-                "SearchID": s.SearchID,
-                "StudentID": s.StudentID,
-                "Preferences": s.Preferences
+                "SearchID": r.SearchID,
+                "Preferences": r.Preferences,
+                "StudentUsername": r.StudentUsername,
+                "StudentEmail": r.StudentEmail
             }
-            for s in searches
+            for r in results
         ])
 
 # -----------------------------
