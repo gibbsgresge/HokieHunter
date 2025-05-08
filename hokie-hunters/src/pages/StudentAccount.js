@@ -291,7 +291,19 @@ const handleRoommateDelete = async (id) => {
               <MenuItem key={p.PropertyID} value={p.PropertyID}>{p.Name}</MenuItem>
             ))}
           </TextField>
-          <TextField label="Rating" value={newReview.Rating} onChange={(e) => setNewReview({ ...newReview, Rating: e.target.value })} />
+          <TextField
+  label="Rating"
+  type="number"
+  inputProps={{ min: 1, max: 5, step: 1 }}
+  value={newReview.Rating}
+  onChange={(e) =>
+    setNewReview({
+      ...newReview,
+      Rating: e.target.value === '' ? '' : parseInt(e.target.value, 10)
+    })
+  }
+/>
+
           <TextField label="Comments" value={newReview.Comments} onChange={(e) => setNewReview({ ...newReview, Comments: e.target.value })} />
           <Button onClick={handleReviewCreate} variant="contained">Add</Button>
         </Box>
@@ -305,7 +317,18 @@ const handleRoommateDelete = async (id) => {
                 <TableCell>{r.PropertyName}</TableCell>
                 <TableCell>
                   {editingReview?.ReviewID === r.ReviewID ? (
-                    <TextField value={editingReview.Rating} onChange={(e) => setEditingReview({ ...editingReview, Rating: e.target.value })} />
+                    <TextField
+  type="number"
+  inputProps={{ min: 1, max: 5, step: 1 }}
+  value={editingReview.Rating}
+  onChange={(e) =>
+    setEditingReview({
+      ...editingReview,
+      Rating: e.target.value === '' ? '' : parseInt(e.target.value, 10)
+    })
+  }
+/>
+
                   ) : r.Rating}
                 </TableCell>
                 <TableCell>
