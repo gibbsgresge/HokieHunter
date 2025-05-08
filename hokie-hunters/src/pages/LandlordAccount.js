@@ -102,7 +102,19 @@ function LandlordAccount() {
     }
   };
 
-  const crudSection = (title, items, setItems, newItem, setNewItem, editingItem, setEditingItem, fields, endpoint, idField) => (
+  const crudSection = (
+    title,
+    items,
+    setItems,
+    newItem,
+    setNewItem,
+    editingItem,
+    setEditingItem,
+    fields,
+    endpoint,
+    idField,
+    numberKeys = []
+  ) => (
     <Box mt={6}>
       <Typography variant="h6">{title}</Typography>
       <Table>
@@ -121,9 +133,17 @@ function LandlordAccount() {
                   <TableCell key={f.key}>
                     {editingItem === item[idField] ? (
                       <TextField
+                        type={numberKeys.includes(f.key) ? 'number' : 'text'}
                         value={item[f.key]}
                         onChange={(e) => {
-                          const updated = items.map(i => i[idField] === item[idField] ? { ...i, [f.key]: e.target.value } : i);
+                          const value = numberKeys.includes(f.key)
+                            ? Number(e.target.value)
+                            : e.target.value;
+                          const updated = items.map(i =>
+                            i[idField] === item[idField]
+                              ? { ...i, [f.key]: value }
+                              : i
+                          );
                           setItems(updated);
                         }}
                       />
@@ -168,7 +188,18 @@ function LandlordAccount() {
                     {properties.map(p => <MenuItem key={p.PropertyID} value={p.PropertyID}>{p.Name}</MenuItem>)}
                   </TextField>
                 ) : (
-                  <TextField value={newItem[f.key]} onChange={(e) => setNewItem({ ...newItem, [f.key]: e.target.value })} />
+                  <TextField
+                    type={numberKeys.includes(f.key) ? 'number' : 'text'}
+                    value={newItem[f.key]}
+                    onChange={(e) =>
+                      setNewItem({
+                        ...newItem,
+                        [f.key]: numberKeys.includes(f.key)
+                          ? Number(e.target.value)
+                          : e.target.value
+                      })
+                    }
+                  />
                 )}
               </TableCell>
             ))}
@@ -207,7 +238,7 @@ function LandlordAccount() {
             <TableRow key={prop.PropertyID}>
               <TableCell>{editingId === prop.PropertyID ? <TextField value={editedProperty.Name} onChange={(e) => setEditedProperty({ ...editedProperty, Name: e.target.value })} /> : prop.Name}</TableCell>
               <TableCell>{editingId === prop.PropertyID ? <TextField value={editedProperty.Location} onChange={(e) => setEditedProperty({ ...editedProperty, Location: e.target.value })} /> : prop.Location}</TableCell>
-              <TableCell>{editingId === prop.PropertyID ? <TextField value={editedProperty.Price} onChange={(e) => setEditedProperty({ ...editedProperty, Price: e.target.value })} /> : prop.Price}</TableCell>
+              <TableCell>{editingId === prop.PropertyID ? <TextField type="number" value={editedProperty.Price} onChange={(e) => setEditedProperty({ ...editedProperty, Price: Number(e.target.value) })} /> : prop.Price}</TableCell>
               <TableCell>{editingId === prop.PropertyID ? <TextField value={editedProperty.RoomType} onChange={(e) => setEditedProperty({ ...editedProperty, RoomType: e.target.value })} /> : prop.RoomType}</TableCell>
               <TableCell>
                 {editingId === prop.PropertyID ? (
@@ -232,7 +263,7 @@ function LandlordAccount() {
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 2 }}>
           <TextField label="Name" value={newProperty.Name} onChange={(e) => setNewProperty({ ...newProperty, Name: e.target.value })} />
           <TextField label="Location" value={newProperty.Location} onChange={(e) => setNewProperty({ ...newProperty, Location: e.target.value })} />
-          <TextField label="Price" value={newProperty.Price} onChange={(e) => setNewProperty({ ...newProperty, Price: e.target.value })} />
+          <TextField label="Price" type="number" value={newProperty.Price} onChange={(e) => setNewProperty({ ...newProperty, Price: Number(e.target.value) })} />
           <TextField label="Room Type" value={newProperty.RoomType} onChange={(e) => setNewProperty({ ...newProperty, RoomType: e.target.value })} />
           <Button variant="contained" onClick={handleAdd}>Add</Button>
         </Box>
@@ -244,14 +275,15 @@ function LandlordAccount() {
 
       {crudSection("Commute Info", commutes, setCommutes, newCommute, setNewCommute, editingCommute, setEditingCommute,
         [{ key: 'PropertyID', label: 'Property' }, { key: 'Time', label: 'Time (min)' }, { key: 'Distance', label: 'Distance (mi)' }],
-        'commute', 'CommuteID')}
+        'commute', 'CommuteID', ['Time', 'Distance'])}
 
       {crudSection("Moving Services", movingServices, setMovingServices, newService, setNewService, editingService, setEditingService,
         [{ key: 'PropertyID', label: 'Property' }, { key: 'CompanyName', label: 'Company' }, { key: 'ContactInfo', label: 'Contact Info' }],
         'movingservices', 'ServiceID')}
 
       {crudSection("Amenities", amenities, setAmenities, newAmenity, setNewAmenity, editingAmenity, setEditingAmenity,
-        [{ key: 'PropertyID', label: 'Property' }, { key: 'Type', label: 'Amenity Type' }], 'amenities', 'AmenityID')}
+        [{ key: 'PropertyID', label: 'Property' }, { key: 'Type', label: 'Amenity Type' }],
+        'amenities', 'AmenityID')}
     </Container>
   );
 }
