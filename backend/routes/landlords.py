@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy.orm import Session
-from models import Landlords, Property, Movingservices, Safetyfeatures, Commute
+from models import Landlords, Property, Movingservices, Safetyfeatures, Commute, Amenities
 from db import engine  # Make sure engine is accessible here
 
 landlords_bp = Blueprint('landlords_bp', __name__)
@@ -280,3 +280,62 @@ def delete_commute_by_landlord(landlord_id, commute_id):
         session.delete(commute)
         session.commit()
         return jsonify({"message": "Commute deleted"})
+
+# -------------------------------
+# AMENITIES CRUD
+# -------------------------------
+
+@landlords_bp.route('/landlord/<int:landlord_id>/amenities', methods=['GET'])
+def get_amenities_by_landlord(landlord_id):
+    with Session(engine) as session:
+        amenities = (
+            session.query(Amenities)
+            .join(Property, Amenities.PropertyID == Property.PropertyID)
+            .filter(Property.LandlordID == landlord_id)
+            .all()
+        )
+        return jsonify([
+            {
+                "AmenityID": a.AmenityID,
+                "PropertyID": a.PropertyID,
+                "Type": a.Type
+            } for a in amenities
+        ])
+
+@landlords_bp.route('/landlord/<int:landlord_id>/amenities', methods=['POST'])
+def create_amenity_by_landlord(landlord_id):
+    data = request.get_json()
+    with Session(engine) as session:
+        if not is_property_owned_by_landlord(session, data.get('PropertyID'), landlord_id):
+            return jsonify({"error": "Invalid property"}), 403
+
+        new_amenity = Amenities(
+            PropertyID=data.get('PropertyID'),
+            Type=data.get('Type')
+        )
+        session.add(new_amenity)
+        session.commit()
+        return jsonify({"message": "Amenity created", "AmenityID": new_amenity.AmenityID}), 201
+
+@landlords_bp.route('/landlord/<int:landlord_id>/amenities/<int:amenity_id>', methods=['PUT'])
+def update_amenity_by_landlord(landlord_id, amenity_id):
+    data = request.get_json()
+    with Session(engine) as session:
+        amenity = session.get(Amenities, amenity_id)
+        if not amenity or not is_property_owned_by_landlord(session, amenity.PropertyID, landlord_id):
+            return jsonify({"error": "Not authorized or not found"}), 404
+
+        amenity.Type = data.get('Type', amenity.Type)
+        session.commit()
+        return jsonify({"message": "Amenity updated"})
+
+@landlords_bp.route('/landlord/<int:landlord_id>/amenities/<int:amenity_id>', methods=['DELETE'])
+def delete_amenity_by_landlord(landlord_id, amenity_id):
+    with Session(engine) as session:
+        amenity = session.get(Amenities, amenity_id)
+        if not amenity or not is_property_owned_by_landlord(session, amenity.PropertyID, landlord_id):
+            return jsonify({"error": "Not authorized or not found"}), 404
+        session.delete(amenity)
+        session.commit()
+        return jsonify({"message": "Amenity deleted"})
+

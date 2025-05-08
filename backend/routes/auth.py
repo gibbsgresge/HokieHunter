@@ -1,9 +1,8 @@
 from flask import request, jsonify, Blueprint
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy.orm import Session
-from models import Users, Students, Landlords
+from sqlalchemy.orm import Session, with_polymorphic
+from models import Users, Students, Landlords, Admin
 from db import engine
-from sqlalchemy.orm import with_polymorphic, joinedload
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -13,7 +12,6 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/signup/student', methods=['POST'])
 def signup_student():
     data = request.get_json()
-
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
@@ -39,7 +37,6 @@ def signup_student():
         )
         session.add(new_student)
         session.commit()
-
         return jsonify({'message': 'Student account created', 'user_id': new_student.UserID})
 
 
@@ -49,7 +46,6 @@ def signup_student():
 @auth_bp.route('/signup/landlord', methods=['POST'])
 def signup_landlord():
     data = request.get_json()
-
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
@@ -71,16 +67,46 @@ def signup_landlord():
         )
         session.add(new_landlord)
         session.commit()
-
         return jsonify({'message': 'Landlord account created', 'user_id': new_landlord.UserID})
 
 
+# -----------------------------
+# ADMIN SIGNUP (uses Admin subclass)
+# -----------------------------
+@auth_bp.route('/signup/admin', methods=['POST'])
+def signup_admin():
+    data = request.get_json()
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+
+    if not all([username, email, password]):
+        return jsonify({'error': 'Missing username, email, or password'}), 400
+
+    password_hash = generate_password_hash(password)
+
+    with Session(engine) as session:
+        if session.query(Users).filter_by(Username=username).first():
+            return jsonify({'error': 'Username already exists'}), 400
+
+        new_admin = Admin(
+            Username=username,
+            Email=email,
+            Role='admin',
+            PasswordHash=password_hash,
+            Permissions='all'
+        )
+        session.add(new_admin)
+        session.commit()
+        return jsonify({'message': 'Admin account created', 'user_id': new_admin.UserID})
+
+
+# -----------------------------
+# LOGIN
+# -----------------------------
 @auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-
-    if not data:
-        return jsonify({'error': 'No JSON payload provided'}), 400
 
     username = data.get('username')
     password = data.get('password')
@@ -102,41 +128,11 @@ def login():
 
 
 # -----------------------------
-# ADMIN SIGNUP
+# RESET PASSWORD (safe)
 # -----------------------------
-@auth_bp.route('/signup/admin', methods=['POST'])
-def signup_admin():
-    data = request.get_json()
-
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
-
-    if not all([username, email, password]):
-        return jsonify({'error': 'Missing username, email, or password'}), 400
-
-    password_hash = generate_password_hash(password)
-
-    with Session(engine) as session:
-        if session.query(Users).filter_by(Username=username).first():
-            return jsonify({'error': 'Username already exists'}), 400
-
-        new_admin = Users(
-            Username=username,
-            Email=email,
-            Role='admin',
-            PasswordHash=password_hash
-        )
-        session.add(new_admin)
-        session.commit()
-
-        return jsonify({'message': 'Admin account created', 'user_id': new_admin.UserID})
-
-
 @auth_bp.route('/reset_password', methods=['POST'])
 def reset_password():
     data = request.get_json()
-
     username = data.get('username')
     old_password = data.get('old_password')
     new_password = data.get('new_password')
@@ -145,11 +141,11 @@ def reset_password():
         return jsonify({'error': 'Username, old password, and new password are required'}), 400
 
     with Session(engine) as session:
-        user = session.query(Users).filter_by(Username=username).first()
+        UserWithSubclasses = with_polymorphic(Users, [Admin, Students, Landlords])
+        user = session.query(UserWithSubclasses).filter(Users.Username == username).first()
 
         if not user:
             return jsonify({'error': 'User not found'}), 404
-
         if not check_password_hash(user.PasswordHash, old_password):
             return jsonify({'error': 'Old password is incorrect'}), 403
 
@@ -160,6 +156,9 @@ def reset_password():
 
 
 
+# -----------------------------
+# PROMOTE TO ADMIN (safe)
+# -----------------------------
 @auth_bp.route('/users/<int:user_id>/promote', methods=['PUT'])
 def promote_to_admin(user_id):
     with Session(engine) as session:
@@ -167,14 +166,27 @@ def promote_to_admin(user_id):
         if not user:
             return jsonify({'error': 'User not found'}), 404
 
-        user.Role = 'admin'
+        current_role = user.Role
 
-        # Explicitly delete subclass without deleting base user
-        if user.Role == 'student':
-            session.query(Students).filter_by(UserID=user_id).delete()
-        elif user.Role == 'landlord':
-            session.query(Landlords).filter_by(UserID=user_id).delete()
+        # Remove subclass entry first
+        if current_role == 'student':
+            session.query(Students).filter_by(StudentID=user_id).delete()
+        elif current_role == 'landlord':
+            session.query(Landlords).filter_by(LandlordID=user_id).delete()
 
+        # Promote to admin
+        new_admin = Admin(
+            AdminID=user_id,
+            Username=user.Username,
+            Email=user.Email,
+            Role='admin',
+            PasswordHash=user.PasswordHash,
+            Permissions='all'
+        )
+
+        session.delete(user)
+        session.flush()  # keep ID
+        session.add(new_admin)
         session.commit()
-        return jsonify({'message': f'User {user.Username} promoted to admin'})
 
+        return jsonify({'message': f'User {new_admin.Username} promoted to admin'})

@@ -3,10 +3,10 @@ import sys
 import os
 import datetime
 
-# 1) Ensure we can import db.py and models.py from the parent directory
+# 1) Ensure we can import db.py and models.py
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-# 2) Import the engine and models
+# 2) Import engine and models
 from db import engine
 from models import (
     Base,
@@ -20,7 +20,7 @@ from models import (
 Base.metadata.create_all(engine)
 
 with Session(engine) as session:
-    # 4) Clean existing data (in dependency order)
+    # 4) Clear existing data (order matters due to foreign keys)
     session.query(Amenities).delete()
     session.query(Commute).delete()
     session.query(Leasetransfer).delete()
@@ -38,127 +38,115 @@ with Session(engine) as session:
     session.query(Users).delete()
     session.commit()
 
-    # 5) Create sample users
-    student_user = Students(
-        Email='alice_student@example.com',
+    # 5) Create users
+    student = Students(
+        Email='student@example.com',
         Role='student',
-        Username='alice123',
-        PasswordHash='hashed_password_1',
-        Major='Computer Science',
+        Username='studuser',
+        PasswordHash='hash123',
+        Major='Engineering',
         GraduationYear=2026
     )
-
-    landlord_user = Landlords(
-        Email='bob_landlord@example.com',
+    landlord = Landlords(
+        Email='landlord@example.com',
         Role='landlord',
-        Username='bob_landlord',
-        PasswordHash='hashed_password_2'
+        Username='landy',
+        PasswordHash='hash456'
     )
-
-    admin_user = Admin(
-        Email='charlie_admin@example.com',
+    admin = Admin(
+        Email='admin@example.com',
         Role='admin',
-        Username='charlie_admin',
-        PasswordHash='hashed_password_3',
-        Permissions='FULL_ACCESS'
+        Username='adminy',
+        PasswordHash='hash789',
+        Permissions='ALL'
     )
-
-    session.add_all([student_user, landlord_user, admin_user])
-    session.flush()  # Assign IDs
-
-    # 6) Properties owned by landlord
-    property1 = Property(
-        LandlordID=landlord_user.LandlordID,
-        Name='Hokie Heights',
-        Location='Blacksburg',
-        Price='1000',
-        RoomType='Studio'
-    )
-    property2 = Property(
-        LandlordID=landlord_user.LandlordID,
-        Name='The Village',
-        Location='Uptown',
-        Price='1500',
-        RoomType='2BR'
-    )
-    session.add_all([property1, property2])
+    session.add_all([student, landlord, admin])
     session.flush()
 
-    # 7) Listings
-    listing1 = List(
-        PropertyID=property1.PropertyID,
+    # 6) Properties
+    prop = Property(
+        LandlordID=landlord.LandlordID,
+        Name='Sunset Villas',
+        Location='Downtown',
+        Price='1200',
+        RoomType='1BR'
+    )
+    session.add(prop)
+    session.flush()
+
+    # 7) List
+    listing = List(
+        PropertyID=prop.PropertyID,
         AvailableFrom=datetime.date.today(),
         Status='available'
     )
-    listing2 = List(
-        PropertyID=property2.PropertyID,
-        AvailableFrom=datetime.date(2025, 5, 1),
-        Status='pending'
-    )
-    session.add_all([listing1, listing2])
+    session.add(listing)
     session.flush()
 
-    # 8) Reviews
-    session.add_all([
-        Review(StudentID=student_user.StudentID, PropertyID=property1.PropertyID, Rating=5, Comments='Great location and price!'),
-        Review(StudentID=student_user.StudentID, PropertyID=property2.PropertyID, Rating=4, Comments='Nice place but a bit pricey')
-    ])
-
-    # 9) Favorite
-    session.add(Favorite(
-        StudentID=student_user.StudentID,
-        PropertyID=property1.PropertyID,
-        DateSaved=datetime.date.today(),
-        Comments='I really like this place'
+    # 8) Commute
+    session.add(Commute(
+        PropertyID=prop.PropertyID,
+        Time=10,
+        Distance=2.5,
+        ServiceID=None
     ))
 
-    # 10) Lease Transfer
-    session.add(Leasetransfer(
-        StudentID=student_user.StudentID,
-        PropertyID=property1.PropertyID,
-        LeaseEndDate=datetime.date(2026, 5, 31),
-        TransferStatus='open'
-    ))
-
-    # 11) Commute
-    session.add_all([
-        Commute(PropertyID=property1.PropertyID, Time=15, Distance=3.2),
-        Commute(PropertyID=property2.PropertyID, Time=25, Distance=6.7)
-    ])
-
-    # 12) Message
+    # 9) Message
     session.add(Message(
-        SenderID=student_user.UserID,
-        Content='Is this still available?',
+        SenderID=student.UserID,
+        Content="Is this property pet-friendly?",
         Timestamp=datetime.datetime.now()
     ))
 
-    # 13) Moving Services
+    # 10) Moving Service
     session.add(Movingservices(
-        PropertyID=property1.PropertyID,
-        CompanyName='Movers Inc',
-        ContactInfo='555-1234'
+        PropertyID=prop.PropertyID,
+        CompanyName='MoveXpress',
+        ContactInfo='123-456-7890'
     ))
 
-    # 14) Safety Features
+    # 11) Safety Feature
     session.add(Safetyfeatures(
-        PropertyID=property1.PropertyID,
-        FeatureDescription='Smoke Alarms'
+        PropertyID=prop.PropertyID,
+        FeatureDescription='Fire Extinguisher'
     ))
 
-    # 15) Amenities
-    session.add_all([
-        Amenities(ListID=listing1.ListID, Type='Pool'),
-        Amenities(ListID=listing2.ListID, Type='Gym')
-    ])
+    # 12) Amenities
+    session.add(Amenities(
+        PropertyID=prop.PropertyID,
+        Type='WiFi'
+    ))
+
+    # 13) Favorite
+    session.add(Favorite(
+        StudentID=student.StudentID,
+        PropertyID=prop.PropertyID,
+        DateSaved=datetime.date.today(),
+        Comments='Seems quiet and close to campus'
+    ))
+
+    # 14) Lease Transfer
+    session.add(Leasetransfer(
+        StudentID=student.StudentID,
+        PropertyID=prop.PropertyID,
+        LeaseEndDate='2026-06-30',
+        TransferStatus='open'
+    ))
+
+    # 15) Review
+    session.add(Review(
+        StudentID=student.StudentID,
+        PropertyID=prop.PropertyID,
+        Rating=5,
+        Comments='Loved the natural lighting and modern kitchen'
+    ))
 
     # 16) Roommate Search
     session.add(Roommatesearch(
-        StudentID=student_user.StudentID,
-        Preferences='Non-smoker, quiet'
+        StudentID=student.StudentID,
+        Preferences='No smoking, early riser'
     ))
 
-    # Final commit
     session.commit()
 
-print("✅ Database seeded successfully with sample data for all tables!")
+print("✅ Sample data inserted into all tables.")

@@ -196,16 +196,17 @@ class Amenities(Base):
     __tablename__ = 'amenities'
     __table_args__ = (
         ForeignKeyConstraint(
-            ['ListID'],
-            ['list.ListID'],
+            ['PropertyID'],
+            ['property.PropertyID'],
             ondelete='CASCADE',
             name='amenities_ibfk_1'
         ),
-        Index('ListID', 'ListID')
+        Index('PropertyID', 'PropertyID')
     )
     AmenityID: Mapped[int] = mapped_column(Integer, primary_key=True)
-    ListID: Mapped[Optional[int]] = mapped_column(Integer)
+    PropertyID: Mapped[int] = mapped_column(Integer, nullable=False)
     Type: Mapped[Optional[str]] = mapped_column(String(100))
+
 
 class Favorite(Base):
     __tablename__ = 'favorite'
