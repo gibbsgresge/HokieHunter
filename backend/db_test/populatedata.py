@@ -1,26 +1,24 @@
+# save this as populate_data.py or similar
 from sqlalchemy.orm import Session
-import sys
-import os
+from faker import Faker
 import datetime
+import random
+import sys, os
 
-# 1) Ensure we can import db.py and models.py
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-# 2) Import engine and models
 from db import engine
 from models import (
-    Base,
-    Users, Students, Landlords, Admin,
+    Base, Users, Students, Landlords, Admin,
     Property, List, Favorite, Review, Commute, Message,
     Movingservices, Safetyfeatures, Amenities, Leasetransfer,
     Roommatesearch
 )
 
-# 3) Create tables
+fake = Faker()
 Base.metadata.create_all(engine)
 
 with Session(engine) as session:
-    # 4) Clear existing data (order matters due to foreign keys)
     session.query(Amenities).delete()
     session.query(Commute).delete()
     session.query(Leasetransfer).delete()
@@ -38,115 +36,119 @@ with Session(engine) as session:
     session.query(Users).delete()
     session.commit()
 
-    # 5) Create users
-    student = Students(
-        Email='student@example.com',
-        Role='student',
-        Username='studuser',
-        PasswordHash='hash123',
-        Major='Engineering',
-        GraduationYear=2026
-    )
-    landlord = Landlords(
-        Email='landlord@example.com',
-        Role='landlord',
-        Username='landy',
-        PasswordHash='hash456'
-    )
-    admin = Admin(
-        Email='admin@example.com',
-        Role='admin',
-        Username='adminy',
-        PasswordHash='hash789',
-        Permissions='ALL'
-    )
-    session.add_all([student, landlord, admin])
+    students, landlords, admins = [], [], []
+
+    for _ in range(20):
+        students.append(Students(
+            Email=fake.email(),
+            Role='student',
+            Username=fake.user_name(),
+            PasswordHash=fake.sha256(),
+            Major=fake.job(),
+            GraduationYear=random.randint(2025, 2030)
+        ))
+
+        landlords.append(Landlords(
+            Email=fake.email(),
+            Role='landlord',
+            Username=fake.user_name(),
+            PasswordHash=fake.sha256()
+        ))
+
+        admins.append(Admin(
+            Email=fake.email(),
+            Role='admin',
+            Username=fake.user_name(),
+            PasswordHash=fake.sha256(),
+            Permissions='ALL'
+        ))
+
+    session.add_all(students + landlords + admins)
     session.flush()
 
-    # 6) Properties
-    prop = Property(
-        LandlordID=landlord.LandlordID,
-        Name='Sunset Villas',
-        Location='Downtown',
-        Price='1200',
-        RoomType='1BR'
-    )
-    session.add(prop)
+    properties = []
+    for i in range(20):
+        landlord = random.choice(landlords)
+        prop = Property(
+            LandlordID=landlord.LandlordID,
+            Name=fake.company(),
+            Location=fake.address(),
+            Price=str(random.randint(800, 2000)),
+            RoomType=random.choice(['Studio', '1BR', '2BR', 'Shared'])
+        )
+        properties.append(prop)
+    session.add_all(properties)
     session.flush()
 
-    # 7) List
-    listing = List(
-        PropertyID=prop.PropertyID,
-        AvailableFrom=datetime.date.today(),
-        Status='available'
-    )
-    session.add(listing)
-    session.flush()
+    lists, commutes, messages, movings, safety, amenities = [], [], [], [], [], []
+    favorites, leases, reviews, roommate_searches = [], [], [], []
 
-    # 8) Commute
-    session.add(Commute(
-        PropertyID=prop.PropertyID,
-        Time=10,
-        Distance=2.5,
-        ServiceID=None
-    ))
+    for prop in properties:
+        lists.append(List(
+            PropertyID=prop.PropertyID,
+            AvailableFrom=fake.date_this_year(),
+            Status=random.choice(['available', 'occupied'])
+        ))
 
-    # 9) Message
-    session.add(Message(
-        SenderID=student.UserID,
-        Content="Is this property pet-friendly?",
-        Timestamp=datetime.datetime.now()
-    ))
+        commutes.append(Commute(
+            PropertyID=prop.PropertyID,
+            Time=random.randint(5, 30),
+            Distance=round(random.uniform(1.0, 10.0), 2),
+            ServiceID=random.randint(1, 100)
+        ))
 
-    # 10) Moving Service
-    session.add(Movingservices(
-        PropertyID=prop.PropertyID,
-        CompanyName='MoveXpress',
-        ContactInfo='123-456-7890'
-    ))
+        movings.append(Movingservices(
+            PropertyID=prop.PropertyID,
+            CompanyName=fake.company(),
+            ContactInfo=fake.phone_number()
+        ))
 
-    # 11) Safety Feature
-    session.add(Safetyfeatures(
-        PropertyID=prop.PropertyID,
-        FeatureDescription='Fire Extinguisher'
-    ))
+        safety.append(Safetyfeatures(
+            PropertyID=prop.PropertyID,
+            FeatureDescription=random.choice(['CCTV', 'Fire Extinguisher', 'Emergency Exit', 'Smoke Detector'])
+        ))
 
-    # 12) Amenities
-    session.add(Amenities(
-        PropertyID=prop.PropertyID,
-        Type='WiFi'
-    ))
+        amenities.append(Amenities(
+            PropertyID=prop.PropertyID,
+            Type=random.choice(['WiFi', 'Pool', 'Gym', 'Laundry'])
+        ))
 
-    # 13) Favorite
-    session.add(Favorite(
-        StudentID=student.StudentID,
-        PropertyID=prop.PropertyID,
-        DateSaved=datetime.date.today(),
-        Comments='Seems quiet and close to campus'
-    ))
+    for student in students:
+        messages.append(Message(
+            SenderID=student.UserID,
+            Content=fake.sentence(),
+            Timestamp=datetime.datetime.now()
+        ))
 
-    # 14) Lease Transfer
-    session.add(Leasetransfer(
-        StudentID=student.StudentID,
-        PropertyID=prop.PropertyID,
-        LeaseEndDate='2026-06-30',
-        TransferStatus='open'
-    ))
+        roommate_searches.append(Roommatesearch(
+            StudentID=student.StudentID,
+            Preferences=fake.text(max_nb_chars=100)
+        ))
 
-    # 15) Review
-    session.add(Review(
-        StudentID=student.StudentID,
-        PropertyID=prop.PropertyID,
-        Rating=5,
-        Comments='Loved the natural lighting and modern kitchen'
-    ))
+        for _ in range(1):  # 1 of each per student
+            p = random.choice(properties)
+            favorites.append(Favorite(
+                StudentID=student.StudentID,
+                PropertyID=p.PropertyID,
+                DateSaved=fake.date_this_year(),
+                Comments=fake.text(max_nb_chars=100)
+            ))
 
-    # 16) Roommate Search
-    session.add(Roommatesearch(
-        StudentID=student.StudentID,
-        Preferences='No smoking, early riser'
-    ))
+            leases.append(Leasetransfer(
+                StudentID=student.StudentID,
+                PropertyID=p.PropertyID,
+                LeaseEndDate=fake.date_between(start_date='+1y', end_date='+2y').isoformat(),
+                TransferStatus=random.choice(['open', 'pending', 'closed'])
+            ))
 
+            reviews.append(Review(
+                StudentID=student.StudentID,
+                PropertyID=p.PropertyID,
+                Rating=random.randint(1, 5),
+                Comments=fake.text(max_nb_chars=150)
+            ))
+
+    session.add_all(lists + commutes + messages + movings + safety + amenities +
+                    favorites + leases + reviews + roommate_searches)
     session.commit()
-
-print("✅ Sample data inserted into all tables.")
+    print("✅ 20 entries per table inserted.")
