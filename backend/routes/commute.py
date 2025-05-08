@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy.orm import Session
 from models import Commute, Property
-from db import engine  # Use db.py, not app.py
+from db import engine  
 
 commute_bp = Blueprint('commute_bp', __name__)
 

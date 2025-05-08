@@ -89,7 +89,6 @@ def get_landlord_properties(landlord_id):
 
 
 
--
 
 @landlords_bp.route('/landlord/<int:landlord_id>/safetyfeatures', methods=['GET'])
 def get_safetyfeatures_by_landlord(landlord_id):

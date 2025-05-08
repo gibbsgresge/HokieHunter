@@ -21,10 +21,11 @@ const Dashboard = () => {
   const [students, setStudents] = useState({ by_major: [], by_graduation_year: [] });
 
   useEffect(() => {
-    fetch('/summary').then(res => res.json()).then(setSummary);
-    fetch('/landlord-stats').then(res => res.json()).then(setLandlords);
-    fetch('/student-stats').then(res => res.json()).then(setStudents);
-  }, []);
+  fetch('http://localhost:5000/summary').then(res => res.json()).then(setSummary);
+  fetch('http://localhost:5000/landlord-stats').then(res => res.json()).then(setLandlords);
+  fetch('http://localhost:5000/student-stats').then(res => res.json()).then(setStudents);
+}, []);
+
 
   const roleData = summary
     ? [
