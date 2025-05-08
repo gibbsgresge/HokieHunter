@@ -6,9 +6,7 @@ import datetime
 
 message_bp = Blueprint('message_bp', __name__)
 
-# -----------------------------
-# Get all messages
-# -----------------------------
+
 @message_bp.route('/message', methods=['GET'])
 def get_messages():
     with Session(engine) as session:
@@ -23,9 +21,7 @@ def get_messages():
             for m in messages
         ])
 
-# -----------------------------
-# Get message by ID
-# -----------------------------
+
 @message_bp.route('/message/<int:message_id>', methods=['GET'])
 def get_message(message_id):
     with Session(engine) as session:
@@ -39,9 +35,7 @@ def get_message(message_id):
             })
         return jsonify({"error": "Message not found"}), 404
 
-# -----------------------------
-# Create a new message
-# -----------------------------
+
 @message_bp.route('/message', methods=['POST'])
 def create_message():
     data = request.get_json()
@@ -55,9 +49,7 @@ def create_message():
         session.commit()
         return jsonify({"message": "Message sent", "MessageID": new_message.MessageID}), 201
 
-# -----------------------------
-# Update a message
-# -----------------------------
+
 @message_bp.route('/message/<int:message_id>', methods=['PUT'])
 def update_message(message_id):
     data = request.get_json()
@@ -70,9 +62,7 @@ def update_message(message_id):
             return jsonify({"message": "Message updated"})
         return jsonify({"error": "Message not found"}), 404
 
-# -----------------------------
-# Delete a message
-# -----------------------------
+
 @message_bp.route('/message/<int:message_id>', methods=['DELETE'])
 def delete_message(message_id):
     with Session(engine) as session:

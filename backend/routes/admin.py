@@ -1,13 +1,11 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy.orm import Session
 from models import Admin
-from db import engine  # or however you access your SQLAlchemy engine
+from db import engine  
 
 admin_bp = Blueprint('admin_bp', __name__)
 
-# -----------------------------
-# Get all admins
-# -----------------------------
+
 @admin_bp.route('/admin', methods=['GET'])
 def get_admins():
     with Session(engine) as session:
@@ -22,9 +20,7 @@ def get_admins():
             for a in admins
         ])
 
-# -----------------------------
-# Get a single admin
-# -----------------------------
+
 @admin_bp.route('/admin/<int:admin_id>', methods=['GET'])
 def get_admin(admin_id):
     with Session(engine) as session:
@@ -38,9 +34,7 @@ def get_admin(admin_id):
             })
         return jsonify({"error": "Admin not found"}), 404
 
-# -----------------------------
-# Create a new admin
-# -----------------------------
+
 @admin_bp.route('/admin', methods=['POST'])
 def create_admin():
     data = request.get_json()
@@ -54,9 +48,7 @@ def create_admin():
         session.commit()
         return jsonify({"message": "Admin created", "AdminID": new_admin.AdminID}), 201
 
-# -----------------------------
-# Update admin
-# -----------------------------
+
 @admin_bp.route('/admin/<int:admin_id>', methods=['PUT'])
 def update_admin(admin_id):
     data = request.get_json()
@@ -69,9 +61,7 @@ def update_admin(admin_id):
             return jsonify({"message": "Admin updated"})
         return jsonify({"error": "Admin not found"}), 404
 
-# -----------------------------
-# Delete admin
-# -----------------------------
+
 @admin_bp.route('/admin/<int:admin_id>', methods=['DELETE'])
 def delete_admin(admin_id):
     with Session(engine) as session:

@@ -5,9 +5,7 @@ from db import engine
 
 amenities_bp = Blueprint('amenities_bp', __name__)
 
-# -----------------------------
-# Get all amenities
-# -----------------------------
+
 @amenities_bp.route('/amenities', methods=['GET'])
 def get_amenities():
     with Session(engine) as session:
@@ -33,9 +31,7 @@ def get_amenities():
         ])
 
 
-# -----------------------------
-# Get amenity by ID
-# -----------------------------
+
 @amenities_bp.route('/amenities/<int:amenity_id>', methods=['GET'])
 def get_amenity(amenity_id):
     with Session(engine) as session:
@@ -48,9 +44,7 @@ def get_amenity(amenity_id):
             })
         return jsonify({"error": "Amenity not found"}), 404
 
-# -----------------------------
-# Create a new amenity
-# -----------------------------
+
 @amenities_bp.route('/amenities', methods=['POST'])
 def create_amenity():
     data = request.get_json()
@@ -63,9 +57,6 @@ def create_amenity():
         session.commit()
         return jsonify({"message": "Amenity added", "AmenityID": new_amenity.AmenityID}), 201
 
-# -----------------------------
-# Update an existing amenity
-# -----------------------------
 @amenities_bp.route('/amenities/<int:amenity_id>', methods=['PUT'])
 def update_amenity(amenity_id):
     data = request.get_json()
@@ -78,9 +69,7 @@ def update_amenity(amenity_id):
             return jsonify({"message": "Amenity updated"})
         return jsonify({"error": "Amenity not found"}), 404
 
-# -----------------------------
-# Delete an amenity
-# -----------------------------
+
 @amenities_bp.route('/amenities/<int:amenity_id>', methods=['DELETE'])
 def delete_amenity(amenity_id):
     with Session(engine) as session:

@@ -10,6 +10,7 @@ import Landing from './pages/Landing'
 import EntityPage from './pages/EntityPage'
 import Account from './pages/Account'
 import ChangePassword from './pages/changePassword'
+import Dashboard from './pages/Dashboard'
 function App() {
   return (
     <ThemeProvider theme={theme}>
@@ -23,6 +24,8 @@ function App() {
           <Route path="/entity/:entityName" element={<EntityPage />} />
           <Route path="/account" element={<Account />} />
           <Route path="/change-password" element={<ChangePassword />} />
+          <Route path="/pages/dashboard" element={<Dashboard />} />
+
         </Routes>
       </Router>
     </ThemeProvider>

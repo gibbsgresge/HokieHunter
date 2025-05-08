@@ -1,14 +1,12 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy.orm import Session
 from models import Landlords, Property, Movingservices, Safetyfeatures, Commute, Amenities
-from db import engine  # Make sure engine is accessible here
+from db import engine  
 
 landlords_bp = Blueprint('landlords_bp', __name__)
 def is_property_owned_by_landlord(session, property_id, landlord_id):
     return session.query(Property).filter_by(PropertyID=property_id, LandlordID=landlord_id).first() is not None
-# -----------------------------
-# Get all landlords
-# -----------------------------
+
 @landlords_bp.route('/landlords', methods=['GET'])
 def get_landlords():
     with Session(engine) as session:
@@ -22,9 +20,7 @@ def get_landlords():
             for l in landlords
         ])
 
-# -----------------------------
-# Get a single landlord
-# -----------------------------
+
 @landlords_bp.route('/landlords/<int:landlord_id>', methods=['GET'])
 def get_landlord(landlord_id):
     with Session(engine) as session:
@@ -37,24 +33,20 @@ def get_landlord(landlord_id):
             })
         return jsonify({"error": "Landlord not found"}), 404
 
-# -----------------------------
-# Create a new landlord
-# -----------------------------
+
 @landlords_bp.route('/landlords', methods=['POST'])
 def create_landlord():
     data = request.get_json()
     with Session(engine) as session:
         new_landlord = Landlords(
             Email=data['Email'],
-            Role='landlord'  # explicitly set role
+            Role='landlord' 
         )
         session.add(new_landlord)
         session.commit()
         return jsonify({"message": "Landlord created", "LandlordID": new_landlord.LandlordID}), 201
 
-# -----------------------------
-# Update landlord
-# -----------------------------
+
 @landlords_bp.route('/landlords/<int:landlord_id>', methods=['PUT'])
 def update_landlord(landlord_id):
     data = request.get_json()
@@ -66,9 +58,7 @@ def update_landlord(landlord_id):
             return jsonify({"message": "Landlord updated"})
         return jsonify({"error": "Landlord not found"}), 404
 
-# -----------------------------
-# Delete landlord
-# -----------------------------
+
 @landlords_bp.route('/landlords/<int:landlord_id>', methods=['DELETE'])
 def delete_landlord(landlord_id):
     with Session(engine) as session:
@@ -99,9 +89,6 @@ def get_landlord_properties(landlord_id):
 
 
 
-# -------------------------------
-# SAFETY FEATURES CRUD
-# -------------------------------
 
 @landlords_bp.route('/landlord/<int:landlord_id>/safetyfeatures', methods=['GET'])
 def get_safetyfeatures_by_landlord(landlord_id):
@@ -159,9 +146,7 @@ def delete_safetyfeature_by_landlord(landlord_id, feature_id):
         session.commit()
         return jsonify({"message": "Safety feature deleted"})
 
-# -------------------------------
-# MOVING SERVICES CRUD
-# -------------------------------
+
 
 @landlords_bp.route('/landlord/<int:landlord_id>/movingservices', methods=['GET'])
 def get_movingservices_by_landlord(landlord_id):
@@ -220,9 +205,7 @@ def delete_movingservice_by_landlord(landlord_id, service_id):
         session.commit()
         return jsonify({"message": "Moving service deleted"})
 
-# -------------------------------
-# COMMUTE INFO CRUD
-# -------------------------------
+
 
 @landlords_bp.route('/landlord/<int:landlord_id>/commute', methods=['GET'])
 def get_commute_by_landlord(landlord_id):
@@ -281,9 +264,7 @@ def delete_commute_by_landlord(landlord_id, commute_id):
         session.commit()
         return jsonify({"message": "Commute deleted"})
 
-# -------------------------------
-# AMENITIES CRUD
-# -------------------------------
+
 
 @landlords_bp.route('/landlord/<int:landlord_id>/amenities', methods=['GET'])
 def get_amenities_by_landlord(landlord_id):

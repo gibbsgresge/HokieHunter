@@ -6,9 +6,7 @@ import datetime
 
 favorite_bp = Blueprint('favorite_bp', __name__)
 
-# -----------------------------
-# Get all favorites
-# -----------------------------
+
 @favorite_bp.route('/favorite', methods=['GET'])
 def get_favorites():
     with Session(engine) as session:
@@ -41,9 +39,7 @@ def get_favorites():
             for fav in favorites
         ])
 
-# -----------------------------
-# Get favorite by ID
-# -----------------------------
+
 @favorite_bp.route('/favorite/<int:favorite_id>', methods=['GET'])
 def get_favorite(favorite_id):
     with Session(engine) as session:
@@ -58,9 +54,7 @@ def get_favorite(favorite_id):
             })
         return jsonify({"error": "Favorite not found"}), 404
 
-# -----------------------------
-# Create a new favorite
-# -----------------------------
+
 @favorite_bp.route('/favorite', methods=['POST'])
 def create_favorite():
     data = request.get_json()
@@ -75,9 +69,7 @@ def create_favorite():
         session.commit()
         return jsonify({"message": "Favorite added", "FavoriteID": new_favorite.FavoriteID}), 201
 
-# -----------------------------
-# Update a favorite
-# -----------------------------
+
 @favorite_bp.route('/favorite/<int:favorite_id>', methods=['PUT'])
 def update_favorite(favorite_id):
     data = request.get_json()
@@ -93,9 +85,7 @@ def update_favorite(favorite_id):
             return jsonify({"message": "Favorite updated"})
         return jsonify({"error": "Favorite not found"}), 404
 
-# -----------------------------
-# Delete a favorite
-# -----------------------------
+
 @favorite_bp.route('/favorite/<int:favorite_id>', methods=['DELETE'])
 def delete_favorite(favorite_id):
     with Session(engine) as session:

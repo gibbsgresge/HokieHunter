@@ -3,13 +3,13 @@ import { createTheme } from '@mui/material/styles'
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#861F41' // Chicago Maroon
+      main: '#861F41'
     },
     secondary: {
-      main: '#E5751F' // Burnt Orange
+      main: '#E5751F' 
     },
     background: {
-      default: '#f5f1eb' // old-money parchment style
+      default: '#f5f1eb' 
     }
   },
   typography: {

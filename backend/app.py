@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from routes import register_routes
-from db import engine  # <- you now import engine from db.py (no circular import)
+from db import engine  
 from models import Base
 
 

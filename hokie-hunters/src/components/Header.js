@@ -47,6 +47,16 @@ function Header() {
                 </Button>
               )}
 
+              {role === 'admin' && (
+                <Button
+                  onClick={() => navigate('/pages/dashboard')}
+                  color="inherit"
+                  sx={{ mr: 2 }}
+                >
+                  Stats
+                </Button>
+              )}
+
               <Button
                 onClick={() => navigate('/change-password')}
                 color="inherit"

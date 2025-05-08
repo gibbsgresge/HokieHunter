@@ -6,9 +6,7 @@ import datetime
 
 list_bp = Blueprint('list_bp', __name__)
 
-# -----------------------------
-# Get all listings
-# -----------------------------
+
 @list_bp.route('/list', methods=['GET'])
 def get_listings():
     with Session(engine) as session:
@@ -23,9 +21,7 @@ def get_listings():
             for l in listings
         ])
 
-# -----------------------------
-# Get listing by ID
-# -----------------------------
+
 @list_bp.route('/list/<int:list_id>', methods=['GET'])
 def get_listing(list_id):
     with Session(engine) as session:
@@ -39,9 +35,7 @@ def get_listing(list_id):
             })
         return jsonify({"error": "Listing not found"}), 404
 
-# -----------------------------
-# Create a new listing
-# -----------------------------
+
 @list_bp.route('/listings', methods=['POST'])
 def create_listing():
     data = request.get_json()
@@ -55,9 +49,7 @@ def create_listing():
         session.commit()
         return jsonify({"message": "Listing created", "ListID": new_listing.ListID}), 201
 
-# -----------------------------
-# Update an existing listing
-# -----------------------------
+
 @list_bp.route('/list/<int:list_id>', methods=['PUT'])
 def update_listing(list_id):
     data = request.get_json()
@@ -72,9 +64,7 @@ def update_listing(list_id):
             return jsonify({"message": "Listing updated"})
         return jsonify({"error": "Listing not found"}), 404
 
-# -----------------------------
-# Delete a listing
-# -----------------------------
+
 @list_bp.route('/list/<int:list_id>', methods=['DELETE'])
 def delete_listing(list_id):
     with Session(engine) as session:

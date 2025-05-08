@@ -9,9 +9,7 @@ import datetime
 class Base(DeclarativeBase):
     pass
 
-# ----------------------------------------------------------------------
-# 1) USERS PARENT TABLE (Joined Inheritance)
-# ----------------------------------------------------------------------
+
 class Users(Base):
     __tablename__ = 'users'
     
@@ -28,12 +26,7 @@ class Users(Base):
         'polymorphic_identity': 'user'
     }
 
-# ----------------------------------------------------------------------
-# 2) CHILD CLASSES
-#    "ondelete='CASCADE'" can be used if you want removing a Users row
-#    to automatically remove the child row. This is optional in joined
-#    inheritance, but shown for completeness.
-# ----------------------------------------------------------------------
+
 
 class Admin(Users):
     __tablename__ = 'admin'
@@ -75,7 +68,7 @@ class Students(Users):
         ForeignKeyConstraint(
             ['StudentID'],
             ['users.UserID'],
-            ondelete='CASCADE',  # If removing user => remove Student row
+            ondelete='CASCADE', 
             name='students_ibfk_1'
         ),
     )
@@ -87,9 +80,9 @@ class Students(Users):
         'polymorphic_identity': 'student'
     }
 
-# ----------------------------------------------------------------------
+# 
 # 3) PROPERTY TABLE
-# ----------------------------------------------------------------------
+# 
 class Property(Base):
     __tablename__ = 'property'
     PropertyID: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -108,9 +101,7 @@ class Property(Base):
 
 # ----------------------------------------------------------------------
 # 4) TABLES REFERENCING STUDENTS OR PROPERTY, ETC.
-#    We'll add "ondelete='CASCADE'" so that removing the parent row
-#    automatically removes dependent rows.
-# ----------------------------------------------------------------------
+#  
 
 class Commute(Base):
     __tablename__ = 'commute'

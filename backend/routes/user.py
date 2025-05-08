@@ -8,9 +8,7 @@ from .landlords import create_landlord
 
 user_bp = Blueprint('user_bp', __name__)
 
-# -----------------------------
-# Get all users
-# -----------------------------
+
 @user_bp.route('/users', methods=['GET'])
 def get_users():
     with Session(engine) as session:
@@ -18,7 +16,7 @@ def get_users():
         return jsonify([
             {
                 "UserID": u.UserID,
-                "Username": u.Username,  # ← now included
+                "Username": u.Username,  
                 "Email": u.Email,
                 "Role": u.Role
             }
@@ -26,9 +24,7 @@ def get_users():
         ])
 
 
-# -----------------------------
-# Get single user
-# -----------------------------
+
 @user_bp.route('/users/<int:user_id>', methods=['GET'])
 def get_user(user_id):
     with Session(engine) as session:
@@ -57,7 +53,7 @@ def change_user_role(user_id):
     data = request.get_json()
     new_role = data.get('Role')
     new_email = data.get('Email')
-    extra_fields = data.get('Extra', {})  # optional: {'Major': ..., 'Permissions': ...}
+    extra_fields = data.get('Extra', {}) 
 
     with Session(engine) as session:
         user = session.get(Users, user_id)
@@ -67,13 +63,13 @@ def change_user_role(user_id):
 
         current_role = user.Role
 
-        # If role changed, preserve username/password and recreate with new subclass
+       
         if new_role != current_role:
             original_username = user.Username
             original_password_hash = user.PasswordHash
 
             session.delete(user)
-            session.flush()  # preserve user_id
+            session.flush()  
 
             if new_role == 'student':
                 new_user = Students(
@@ -108,7 +104,7 @@ def change_user_role(user_id):
             session.add(new_user)
 
         else:
-            # If role is unchanged, allow email updates only
+            
             if new_email and user.Email != new_email:
                 user.Email = new_email
 
@@ -117,9 +113,6 @@ def change_user_role(user_id):
 
 
 
-# -----------------------------
-# Delete user
-# -----------------------------
 @user_bp.route('/users/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
     with Session(engine) as session:
