@@ -34,7 +34,10 @@ const StudentAccount = () => {
     fetch(`http://localhost:5000/student/${studentId}/lease_transfers`).then(res => res.json()).then(setLeaseTransfers);
     fetch(`http://localhost:5000/student/${studentId}/reviews`).then(res => res.json()).then(setReviews);
     fetch(`http://localhost:5000/student/${studentId}/favorites`).then(res => res.json()).then(setFavorites);
-    fetch(`http://localhost:5000/student/${studentId}/roommate_search`).then(res => res.json()).then(data => setRoommateSearch(data.Preferences || ''));
+    fetch(`http://localhost:5000/student/${studentId}/roommate_search`)
+  .then(res => res.json())
+  .then(setRoommatePreferences);
+
     fetch('http://localhost:5000/property').then(res => res.json()).then(setProperties);
   }, [studentId]);
 
@@ -42,7 +45,46 @@ const StudentAccount = () => {
     fetch(`http://localhost:5000/student/${studentId}/lease_transfers`).then(res => res.json()).then(setLeaseTransfers);
     fetch(`http://localhost:5000/student/${studentId}/reviews`).then(res => res.json()).then(setReviews);
     fetch(`http://localhost:5000/student/${studentId}/favorites`).then(res => res.json()).then(setFavorites);
+    fetch(`http://localhost:5000/student/${studentId}/roommate_search`)
+  .then(res => res.json())
+  .then(setRoommatePreferences);
+
   };
+
+  const [roommatePreferences, setRoommatePreferences] = useState([]);
+const [newRoommatePreference, setNewRoommatePreference] = useState('');
+const [editingPreference, setEditingPreference] = useState(null);
+
+const handleRoommateCreate = async () => {
+  await fetch(`http://localhost:5000/student/${studentId}/roommate_search`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ Preferences: newRoommatePreference })
+  });
+  setNewRoommatePreference('');
+  refreshData();
+};
+
+const handleRoommateUpdate = async () => {
+  if (!editingPreference || !editingPreference.SearchID) {
+    console.error("No valid preference selected for update.");
+    return;
+  }
+
+  await fetch(`http://localhost:5000/roommate_search/${editingPreference.SearchID}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ Preferences: editingPreference.Preferences })
+  });
+  setEditingPreference(null);
+  refreshData();
+};
+
+
+const handleRoommateDelete = async (id) => {
+  await fetch(`http://localhost:5000/roommate_search/${id}`, { method: 'DELETE' });
+  refreshData();
+};
 
   const handleLeaseCreate = async () => {
     await fetch('http://localhost:5000/lease_transfers', {
@@ -127,13 +169,7 @@ const StudentAccount = () => {
     refreshData();
   };
 
-  const handleRoommateUpdate = async () => {
-    await fetch(`http://localhost:5000/student/${studentId}/roommate_search`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ Preferences: roommateSearch })
-    });
-  };
+ 
 
   return (
     <Container sx={{ mt: 10 }}>
@@ -141,15 +177,53 @@ const StudentAccount = () => {
 
       {/* Roommate Preferences */}
       <Box mt={4}>
-        <Typography variant="h6">Roommate Preferences</Typography>
-        <TextField
-          fullWidth
-          label="Preferences"
-          value={roommateSearch}
-          onChange={(e) => setRoommateSearch(e.target.value)}
-          onBlur={handleRoommateUpdate}
-        />
-      </Box>
+  <Typography variant="h6">Roommate Preferences</Typography>
+  <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+    <TextField
+      fullWidth
+      label="Preference"
+      value={newRoommatePreference}
+      onChange={(e) => setNewRoommatePreference(e.target.value)}
+    />
+    <Button onClick={handleRoommateCreate} variant="contained">Add</Button>
+  </Box>
+
+  <Table sx={{ mt: 2 }}>
+    <TableHead>
+      <TableRow>
+        <TableCell>Preferences</TableCell>
+        <TableCell>Actions</TableCell>
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      {Array.isArray(roommatePreferences) && roommatePreferences.map(pref => (
+        <TableRow key={pref.SearchID}>
+          <TableCell>
+            {editingPreference?.SearchID === pref.SearchID ? (
+              <TextField
+                fullWidth
+                value={editingPreference.Preferences}
+                onChange={(e) => setEditingPreference({ ...editingPreference, Preferences: e.target.value })}
+              />
+            ) : (
+              pref.Preferences
+            )}
+          </TableCell>
+          <TableCell>
+            {editingPreference?.SearchID === pref.SearchID ? (
+              <Button size="small" onClick={handleRoommateUpdate}>Save</Button>
+            ) : (
+              <Button size="small" onClick={() => setEditingPreference(pref)}>Edit</Button>
+            )}
+            <Button size="small" color="error" onClick={() => handleRoommateDelete(pref.SearchID)}>Delete</Button>
+          </TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+</Box>
+
+
 
       {/* Lease Transfers */}
       <Box mt={4}>

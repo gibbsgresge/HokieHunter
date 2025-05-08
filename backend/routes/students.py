@@ -247,20 +247,52 @@ def delete_favorite(favorite_id):
 # Roommate Search
 # -----------------------------
 @students_bp.route('/student/<int:student_id>/roommate_search', methods=['GET'])
-def get_roommate_search(student_id):
+def get_roommate_preferences(student_id):
     with Session(engine) as session:
-        prefs = session.query(Roommatesearch).filter_by(StudentID=student_id).first()
-        return jsonify({'Preferences': prefs.Preferences if prefs else ''})
+        results = (
+            session.query(Roommatesearch)
+            .filter(Roommatesearch.StudentID == student_id)
+            .all()
+        )
+        return jsonify([
+            {
+                "SearchID": r.SearchID,
+                "Preferences": r.Preferences
+            } for r in results
+        ])
 
-@students_bp.route('/student/<int:student_id>/roommate_search', methods=['PUT'])
-def update_roommate_search(student_id):
+@students_bp.route('/student/<int:student_id>/roommate_search', methods=['POST'])
+def create_roommate_preference(student_id):
     data = request.get_json()
     with Session(engine) as session:
-        existing = session.query(Roommatesearch).filter_by(StudentID=student_id).first()
-        if existing:
-            existing.Preferences = data['Preferences']
-        else:
-            new_prefs = Roommatesearch(StudentID=student_id, Preferences=data['Preferences'])
-            session.add(new_prefs)
+        new_pref = Roommatesearch(
+            StudentID=student_id,
+            Preferences=data['Preferences']
+        )
+        session.add(new_pref)
         session.commit()
-        return jsonify({'message': 'Preferences updated'}), 200
+        return jsonify({'message': 'Roommate preference added'}), 201
+
+@students_bp.route('/roommate_search/<int:search_id>', methods=['PUT'])
+def update_roommate_preference(search_id):
+    data = request.get_json()
+    with Session(engine) as session:
+        pref = session.get(Roommatesearch, search_id)
+        if pref:
+            pref.Preferences = data.get('Preferences', pref.Preferences)
+            session.commit()
+            return jsonify({'message': 'Roommate preference updated'})
+        return jsonify({'error': 'Roommate preference not found'}), 404
+
+@students_bp.route('/roommate_search/<int:search_id>', methods=['DELETE'])
+def delete_roommate_preference(search_id):
+    with Session(engine) as session:
+        pref = session.get(Roommatesearch, search_id)
+        if pref:
+            session.delete(pref)
+            session.commit()
+            return jsonify({'message': 'Roommate preference deleted'})
+        return jsonify({'error': 'Roommate preference not found'}), 404
+
+
+
