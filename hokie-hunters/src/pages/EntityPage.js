@@ -56,7 +56,6 @@ function EntityPage() {
     try {
       const res = await fetch(`http://localhost:5000/${endpointMap[entityName]}`);
       const json = await res.json();
-      console.log('Fetched data after save:', json);
       setData(json);
     } catch (err) {
       console.error('Error fetching data:', err);
@@ -96,7 +95,6 @@ function EntityPage() {
 
   const handleSave = async () => {
     try {
-      console.log('Sending updated data:', editData);
       await fetch(`http://localhost:5000/${endpointMap[entityName]}/${editingRow}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -112,15 +110,15 @@ function EntityPage() {
   if (loading) return <CircularProgress sx={{ mt: 10 }} />;
   if (!data || data.length === 0) return <Typography>No data found.</Typography>;
 
+  // Filter out all ID fields except ones with 'name' or 'email'
   const headers = Object.keys(data[0]).filter((key) => {
     const lower = key.toLowerCase();
-    return (
-      !(lower === 'id' || (lower.endsWith('id') && key !== idField)) ||
-      lower.includes('name') ||
-      lower.includes('email')
+    return !(
+      lower.includes('id') &&
+      !lower.includes('name') &&
+      !lower.includes('email')
     );
   });
-  
 
   return (
     <Container maxWidth="lg" sx={{ mt: 8 }}>

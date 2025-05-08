@@ -41,7 +41,7 @@ function Landing() {
           Hi! What can we help you find today?
         </Typography>
         <Typography sx={{ fontFamily: 'Georgia, serif', color: 'text.secondary' }}>
-          Explore housing options, lease transfers, reviews, and more — all in one place.
+          Explore housing options, lease transfers, reviews, and more, all in one place.
         </Typography>
       </Box>
 
