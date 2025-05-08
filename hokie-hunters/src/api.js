@@ -1,15 +1,15 @@
 import axios from 'axios'
 
-// Create Axios instance for general use (login/signup)
+
 const api = axios.create({
   baseURL: 'http://localhost:5000',
-  withCredentials: true, // enable cookies/sessions
+  withCredentials: true, 
 })
 
-// Export this for `import api from '../api'`
+
 export default api
 
-// Existing CRUD exports
+
 export const fetchData = async (entity) => {
   const res = await api.get(`/${entity}`)
   return res.data

@@ -5,9 +5,7 @@ from db import engine  # Use db.py, not app.py
 
 commute_bp = Blueprint('commute_bp', __name__)
 
-# -----------------------------
-# Get all commute entries
-# -----------------------------
+
 @commute_bp.route('/commute', methods=['GET'])
 def get_commutes():
     with Session(engine) as session:
@@ -34,9 +32,7 @@ def get_commutes():
             for c in commutes
         ])
 
-# -----------------------------
-# Get commute by ID
-# -----------------------------
+
 @commute_bp.route('/commute/<int:commute_id>', methods=['GET'])
 def get_commute(commute_id):
     with Session(engine) as session:
@@ -51,9 +47,7 @@ def get_commute(commute_id):
             })
         return jsonify({"error": "Commute not found"}), 404
 
-# -----------------------------
-# Create a new commute entry
-# -----------------------------
+
 @commute_bp.route('/commute', methods=['POST'])
 def create_commute():
     data = request.get_json()
@@ -68,9 +62,7 @@ def create_commute():
         session.commit()
         return jsonify({"message": "Commute added", "CommuteID": new_commute.CommuteID}), 201
 
-# -----------------------------
-# Update an existing commute entry
-# -----------------------------
+
 @commute_bp.route('/commute/<int:commute_id>', methods=['PUT'])
 def update_commute(commute_id):
     data = request.get_json()
@@ -85,9 +77,7 @@ def update_commute(commute_id):
             return jsonify({"message": "Commute updated"})
         return jsonify({"error": "Commute not found"}), 404
 
-# -----------------------------
-# Delete a commute entry
-# -----------------------------
+
 @commute_bp.route('/commute/<int:commute_id>', methods=['DELETE'])
 def delete_commute(commute_id):
     with Session(engine) as session:

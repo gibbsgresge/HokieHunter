@@ -6,9 +6,7 @@ import datetime
 
 students_bp = Blueprint('students_bp', __name__)
 
-# -----------------------------
-# Students CRUD
-# -----------------------------
+
 @students_bp.route('/students', methods=['GET'])
 def get_students():
     with Session(engine) as session:
@@ -74,9 +72,7 @@ def delete_student(student_id):
             return jsonify({"message": "Student deleted"})
         return jsonify({"error": "Student not found"}), 404
 
-# -----------------------------
-# Lease Transfers
-# -----------------------------
+
 @students_bp.route('/student/<int:student_id>/lease_transfers', methods=['GET'])
 def get_lease_transfers(student_id):
     with Session(engine) as session:
@@ -131,9 +127,7 @@ def delete_lease_transfer(transfer_id):
             return jsonify({'message': 'Lease transfer deleted'})
         return jsonify({'error': 'Lease transfer not found'}), 404
 
-# -----------------------------
-# Reviews
-# -----------------------------
+
 @students_bp.route('/student/<int:student_id>/reviews', methods=['GET'])
 def get_reviews(student_id):
     with Session(engine) as session:
@@ -188,9 +182,7 @@ def delete_review(review_id):
             return jsonify({'message': 'Review deleted'})
         return jsonify({'error': 'Review not found'}), 404
 
-# -----------------------------
-# Favorites
-# -----------------------------
+
 @students_bp.route('/student/<int:student_id>/favorites', methods=['GET'])
 def get_favorites(student_id):
     with Session(engine) as session:
@@ -243,9 +235,8 @@ def delete_favorite(favorite_id):
             return jsonify({'message': 'Favorite deleted'})
         return jsonify({'error': 'Favorite not found'}), 404
 
-# -----------------------------
-# Roommate Search
-# -----------------------------
+
+
 @students_bp.route('/student/<int:student_id>/roommate_search', methods=['GET'])
 def get_roommate_preferences(student_id):
     with Session(engine) as session:

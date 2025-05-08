@@ -21,7 +21,7 @@ function AdminAccount() {
         Role: 'admin',
         Email: user.Email,
         Extra: {
-          Permissions: 'all'  // or set specific permissions if you want
+          Permissions: 'all' 
         }
       })
     });

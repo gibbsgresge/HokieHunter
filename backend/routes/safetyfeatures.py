@@ -45,9 +45,7 @@ def get_safety_feature(feature_id):
             })
         return jsonify({"error": "Safety feature not found"}), 404
 
-# -----------------------------
-# Create a new safety feature
-# -----------------------------
+
 @safetyfeatures_bp.route('/safetyfeatures', methods=['POST'])
 def create_safety_feature():
     data = request.get_json()
@@ -60,9 +58,7 @@ def create_safety_feature():
         session.commit()
         return jsonify({"message": "Safety feature added", "FeatureID": new_feature.FeatureID}), 201
 
-# -----------------------------
-# Update a safety feature
-# -----------------------------
+
 @safetyfeatures_bp.route('/safetyfeatures/<int:feature_id>', methods=['PUT'])
 def update_safety_feature(feature_id):
     data = request.get_json()
@@ -89,9 +85,7 @@ def update_safety_feature(feature_id):
             "FeatureDescription": feature.FeatureDescription
         })
 
-# -----------------------------
-# Delete a safety feature
-# -----------------------------
+
 @safetyfeatures_bp.route('/safetyfeatures/<int:feature_id>', methods=['DELETE'])
 def delete_safety_feature(feature_id):
     with Session(engine) as session:

@@ -6,9 +6,7 @@ from db import engine
 
 auth_bp = Blueprint('auth', __name__)
 
-# -----------------------------
-# STUDENT SIGNUP
-# -----------------------------
+
 @auth_bp.route('/signup/student', methods=['POST'])
 def signup_student():
     data = request.get_json()
@@ -40,9 +38,7 @@ def signup_student():
         return jsonify({'message': 'Student account created', 'user_id': new_student.UserID})
 
 
-# -----------------------------
-# LANDLORD SIGNUP
-# -----------------------------
+
 @auth_bp.route('/signup/landlord', methods=['POST'])
 def signup_landlord():
     data = request.get_json()
@@ -70,9 +66,6 @@ def signup_landlord():
         return jsonify({'message': 'Landlord account created', 'user_id': new_landlord.UserID})
 
 
-# -----------------------------
-# ADMIN SIGNUP (uses Admin subclass)
-# -----------------------------
 @auth_bp.route('/signup/admin', methods=['POST'])
 def signup_admin():
     data = request.get_json()
@@ -101,9 +94,7 @@ def signup_admin():
         return jsonify({'message': 'Admin account created', 'user_id': new_admin.UserID})
 
 
-# -----------------------------
-# LOGIN
-# -----------------------------
+
 @auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -127,9 +118,7 @@ def login():
         })
 
 
-# -----------------------------
-# RESET PASSWORD (safe)
-# -----------------------------
+
 @auth_bp.route('/reset_password', methods=['POST'])
 def reset_password():
     data = request.get_json()
@@ -156,9 +145,7 @@ def reset_password():
 
 
 
-# -----------------------------
-# PROMOTE TO ADMIN (safe)
-# -----------------------------
+
 @auth_bp.route('/users/<int:user_id>/promote', methods=['PUT'])
 def promote_to_admin(user_id):
     with Session(engine) as session:
@@ -168,13 +155,13 @@ def promote_to_admin(user_id):
 
         current_role = user.Role
 
-        # Remove subclass entry first
+        
         if current_role == 'student':
             session.query(Students).filter_by(StudentID=user_id).delete()
         elif current_role == 'landlord':
             session.query(Landlords).filter_by(LandlordID=user_id).delete()
 
-        # Promote to admin
+      
         new_admin = Admin(
             AdminID=user_id,
             Username=user.Username,
@@ -185,7 +172,7 @@ def promote_to_admin(user_id):
         )
 
         session.delete(user)
-        session.flush()  # keep ID
+        session.flush() 
         session.add(new_admin)
         session.commit()
 

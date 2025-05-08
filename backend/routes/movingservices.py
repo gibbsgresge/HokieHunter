@@ -5,9 +5,6 @@ from db import engine
 
 movingservices_bp = Blueprint('movingservices_bp', __name__)
 
-# -----------------------------
-# Get all moving services
-# -----------------------------
 @movingservices_bp.route('/movingservices', methods=['GET'])
 def get_moving_services():
     with Session(engine) as session:
@@ -22,9 +19,7 @@ def get_moving_services():
             for s in services
         ])
 
-# -----------------------------
-# Get moving service by ID
-# -----------------------------
+
 @movingservices_bp.route('/movingservices/<int:service_id>', methods=['GET'])
 def get_moving_service(service_id):
     with Session(engine) as session:
@@ -54,9 +49,7 @@ def create_moving_service():
         session.commit()
         return jsonify({"message": "Moving service added", "ServiceID": new_service.ServiceID}), 201
 
-# -----------------------------
-# Update a moving service
-# -----------------------------
+
 @movingservices_bp.route('/movingservices/<int:service_id>', methods=['PUT'])
 def update_moving_service(service_id):
     data = request.get_json()
@@ -70,9 +63,7 @@ def update_moving_service(service_id):
             return jsonify({"message": "Moving service updated"})
         return jsonify({"error": "Moving service not found"}), 404
 
-# -----------------------------
-# Delete a moving service
-# -----------------------------
+
 @movingservices_bp.route('/movingservices/<int:service_id>', methods=['DELETE'])
 def delete_moving_service(service_id):
     with Session(engine) as session:

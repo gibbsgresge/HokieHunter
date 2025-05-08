@@ -1,20 +1,18 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import joinedload
-from db import engine  # make sure this points to your SQLAlchemy engine
+from db import engine  
 from models import Property, Landlords, Users
 property_bp = Blueprint('property_bp', __name__)
 
-# -----------------------------
-# Get all properties
-# -----------------------------
+
 from sqlalchemy.orm import aliased
 from models import Property, Landlords, Users
 
 @property_bp.route('/property', methods=['GET'])
 def get_properties():
     with Session(engine) as session:
-        UserAlias = aliased(Users)  # Avoid 'users' conflict
+        UserAlias = aliased(Users)  
 
         results = (
             session.query(Property, UserAlias.Email, UserAlias.Username)
@@ -37,9 +35,7 @@ def get_properties():
         ])
 
 
-# -----------------------------
-# Get a single property
-# -----------------------------
+
 @property_bp.route('/property/<int:property_id>', methods=['GET'])
 def get_property(property_id):
     with Session(engine) as session:
@@ -54,15 +50,13 @@ def get_property(property_id):
             })
         return jsonify({"error": "Property not found"}), 404
 
-# -----------------------------
-# Create a new property
-# -----------------------------
+
 @property_bp.route('/property', methods=['POST'])
 def create_property():
     data = request.get_json()
     required_fields = ['Name', 'Location', 'Price', 'RoomType', 'LandlordID']
 
-    # Validate required fields
+    
     for field in required_fields:
         if field not in data:
             return jsonify({"error": f"Missing field: {field}"}), 400
@@ -83,9 +77,7 @@ def create_property():
         }), 201
 
 
-# -----------------------------
-# Update property
-# -----------------------------
+
 @property_bp.route('/property/<int:property_id>', methods=['PUT'])
 def update_property(property_id):
     data = request.get_json()
@@ -103,9 +95,7 @@ def update_property(property_id):
         return jsonify({"message": "Property updated"})
 
 
-# -----------------------------
-# Delete property
-# -----------------------------
+
 @property_bp.route('/property/<int:property_id>', methods=['DELETE'])
 def delete_property(property_id):
     with Session(engine) as session:

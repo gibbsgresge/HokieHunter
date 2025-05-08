@@ -5,9 +5,7 @@ from db import engine
 from sqlalchemy.orm import joinedload
 review_bp = Blueprint('review_bp', __name__)
 
-# -----------------------------
-# Get all reviews
-# -----------------------------
+
 @review_bp.route('/review', methods=['GET'])
 def get_reviews():
     with Session(engine) as session:
@@ -48,9 +46,7 @@ def get_review(review_id):
             })
         return jsonify({"error": "Review not found"}), 404
 
-# -----------------------------
-# Create a new review
-# -----------------------------
+
 @review_bp.route('/review', methods=['POST'])
 def create_review():
     data = request.get_json()
@@ -65,9 +61,7 @@ def create_review():
         session.commit()
         return jsonify({"message": "Review submitted", "ReviewID": new_review.ReviewID}), 201
 
-# -----------------------------
-# Update a review
-# -----------------------------
+
 @review_bp.route('/review/<int:review_id>', methods=['PUT'])
 def update_review(review_id):
     data = request.get_json()
@@ -82,9 +76,7 @@ def update_review(review_id):
             return jsonify({"message": "Review updated"})
         return jsonify({"error": "Review not found"}), 404
 
-# -----------------------------
-# Delete a review
-# -----------------------------
+
 @review_bp.route('/review/<int:review_id>', methods=['DELETE'])
 def delete_review(review_id):
     with Session(engine) as session:

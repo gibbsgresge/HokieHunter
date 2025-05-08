@@ -7,9 +7,7 @@ from sqlalchemy.orm import aliased
 
 roommatesearch_bp = Blueprint('roommatesearch_bp', __name__)
 
-# -----------------------------
-# Get all roommate searches
-# -----------------------------
+
 @roommatesearch_bp.route('/roommatesearch', methods=['GET'])
 def get_roommate_searches():
     with Session(engine) as session:
@@ -37,9 +35,7 @@ def get_roommate_searches():
             for r in results
         ])
 
-# -----------------------------
-# Get roommate search by ID
-# -----------------------------
+
 @roommatesearch_bp.route('/roommatesearch/<int:search_id>', methods=['GET'])
 def get_roommate_search(search_id):
     with Session(engine) as session:
@@ -67,9 +63,7 @@ def create_roommate_search():
         session.commit()
         return jsonify({"message": "Roommate search created", "SearchID": new_search.SearchID}), 201
 
-# -----------------------------
-# Update a roommate search
-# -----------------------------
+
 @roommatesearch_bp.route('/roommatesearch/<int:search_id>', methods=['PUT'])
 def update_roommate_search(search_id):
     data = request.get_json()
@@ -82,9 +76,7 @@ def update_roommate_search(search_id):
             return jsonify({"message": "Roommate search updated"})
         return jsonify({"error": "Roommate search not found"}), 404
 
-# -----------------------------
-# Delete a roommate search
-# -----------------------------
+
 @roommatesearch_bp.route('/roommatesearch/<int:search_id>', methods=['DELETE'])
 def delete_roommate_search(search_id):
     with Session(engine) as session:

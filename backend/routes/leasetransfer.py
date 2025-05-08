@@ -6,9 +6,7 @@ import datetime
 
 leasetransfer_bp = Blueprint('leasetransfer_bp', __name__)
 
-# -----------------------------
-# Get all lease transfers
-# -----------------------------
+
 @leasetransfer_bp.route('/leasetransfer', methods=['GET'])
 def get_lease_transfers():
     with Session(engine) as session:
@@ -41,9 +39,7 @@ def get_lease_transfers():
             for t in transfers
         ])
 
-# -----------------------------
-# Get lease transfer by ID
-# -----------------------------
+
 @leasetransfer_bp.route('/leasetransfer/<int:transfer_id>', methods=['GET'])
 def get_lease_transfer(transfer_id):
     with Session(engine) as session:
@@ -58,9 +54,7 @@ def get_lease_transfer(transfer_id):
             })
         return jsonify({"error": "Lease transfer not found"}), 404
 
-# -----------------------------
-# Create a new lease transfer
-# -----------------------------
+
 @leasetransfer_bp.route('/leasetransfer', methods=['POST'])
 def create_leasetransfer():
     data = request.get_json()
@@ -75,9 +69,7 @@ def create_leasetransfer():
         session.commit()
         return jsonify({"message": "Lease transfer created", "TransferID": new_transfer.TransferID}), 201
 
-# -----------------------------
-# Update lease transfer
-# -----------------------------
+
 @leasetransfer_bp.route('/leasetransfer/<int:transfer_id>', methods=['PUT'])
 def update_leasetransfer(transfer_id):
     data = request.get_json()
@@ -93,9 +85,7 @@ def update_leasetransfer(transfer_id):
             return jsonify({"message": "Lease transfer updated"})
         return jsonify({"error": "Lease transfer not found"}), 404
 
-# -----------------------------
-# Delete lease transfer
-# -----------------------------
+
 @leasetransfer_bp.route('/leasetransfer/<int:transfer_id>', methods=['DELETE'])
 def delete_leasetransfer(transfer_id):
     with Session(engine) as session:
