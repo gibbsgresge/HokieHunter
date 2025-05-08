@@ -5,14 +5,18 @@ Made By Group 7: Alex Ryu, Gibbs Gresge, Harsha Paladugu, Jennifer Chandran, Seu
 
 ## Index
 1. [About](#About)
-2. [How To Run](#How-To-Run)
-3. [User Guide](#User-Guide)
-4. [Developer Guide](#Developer-Guide)
+2. [Introduction](#Introduction)
+3. [How To Run](#How-To-Run)
+4. [User Guide](#User-Guide)
+5. [Developer Guide](#Developer-Guide)
 
 ## About
-Hokie Hundter is a web platform designed for Virginia Tech students and landlords, helping them to seek and lease off-campus housing easily. It centralizes property listings, roommate matching, lease transfers, and community resources to streamline the search and leasing process. This app is to help students with accurate, up-to-date rental and commute information and simplify connections between tenants and property managers.
+Hokie Hunter is a web platform designed for Virginia Tech students and landlords, helping them to seek and lease off-campus housing easily. It centralizes property listings, roommate matching, lease transfers, and community resources to streamline the search and leasing process. This app is to help students with accurate, up-to-date rental and commute information and simplify connections between tenants and property managers.
 
 Users can sign in as a role of student or landlord. Landlords are able to add property informations and some other informations like commute information. Students can search for properties, give reviews, add some leasing information, or search for roommates. This app will help both students and landlords to have an opportunity for better communication between them.
+
+## Introduction
+This is a full-stack web app that helps Virginia Tech students and landlords manage off-campus housing. The backend is built with Python and Flask, and supports role-based authentication and secure CRUD operations tailored to the 3 user types—students, landlords, and admins. Students can manage leases, post reviews, and save listings, while landlords can add property details like amenities and commute info. The frontend uses HTML, and JavaScript with additional features being input validation and persistent database storage. 
 
 ## How To Run
 ### Prerequisite
