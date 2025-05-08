@@ -1,18 +1,20 @@
 // src/components/EntityCard.js
 import React from 'react'
 import { Card, Typography, Box, CardActionArea, Avatar } from '@mui/material'
-import { Home, Reviews, Group, Favorite, DirectionsBus, LocalShipping, Shield, SwapHoriz } from '@mui/icons-material'
+import { Home, Reviews, Group, Favorite, DirectionsBus, LocalShipping, Shield, SwapHoriz, Spa } from '@mui/icons-material'
 
 const iconMap = {
-  'Browse Properties': <Home sx={{ fontSize: 32 }} />, 
-  'Lease Transfers': <SwapHoriz sx={{ fontSize: 32 }} />, 
-  'Reviews': <Reviews sx={{ fontSize: 32 }} />, 
-  'Favorites': <Favorite sx={{ fontSize: 32 }} />, 
-  'Roommate Search': <Group sx={{ fontSize: 32 }} />, 
-  'Commute Info': <DirectionsBus sx={{ fontSize: 32 }} />, 
-  'Moving Services': <LocalShipping sx={{ fontSize: 32 }} />, 
-  'Safety Features': <Shield sx={{ fontSize: 32 }} />
+  'Browse Properties': <Home sx={{ fontSize: 32 }} />,
+  'Lease Transfers': <SwapHoriz sx={{ fontSize: 32 }} />,
+  'Reviews': <Reviews sx={{ fontSize: 32 }} />,
+  'Favorites': <Favorite sx={{ fontSize: 32 }} />,
+  'Roommate Search': <Group sx={{ fontSize: 32 }} />,
+  'Commute Info': <DirectionsBus sx={{ fontSize: 32 }} />,
+  'Moving Services': <LocalShipping sx={{ fontSize: 32 }} />,
+  'Safety Features': <Shield sx={{ fontSize: 32 }} />,
+  'Amenities': <Spa sx={{ fontSize: 32 }} /> 
 }
+
 
 function EntityCard({ label, imageUrl, onClick }) {
   return (

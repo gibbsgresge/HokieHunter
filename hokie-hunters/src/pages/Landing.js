@@ -11,7 +11,8 @@ const sections = [
   { label: 'Roommate Search', path: '/entity/roommatesearch', image: '/images/roomate.jpg' },
   { label: 'Commute Info', path: '/entity/commute', image: '/images/commute.jpg' },
   { label: 'Moving Services', path: '/entity/movingservices', image: '/images/movingservice.jpg' },
-  { label: 'Safety Features', path: '/entity/safetyfeatures', image: '/images/safety.jpg' }
+  { label: 'Safety Features', path: '/entity/safetyfeatures', image: '/images/safety.jpg' },
+  { label: 'Amenities', path: '/entity/amenities', image: '/images/amenities.webp' }
 ]
 
 function Landing() {

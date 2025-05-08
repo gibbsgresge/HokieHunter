@@ -12,7 +12,9 @@ import {
   TableBody,
   Box,
   IconButton,
-  TextField
+  TextField,
+  Button,
+  Grid
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -25,6 +27,7 @@ function EntityPage() {
   const [loading, setLoading] = useState(true);
   const [editingRow, setEditingRow] = useState(null);
   const [editData, setEditData] = useState({});
+  const [newEntry, setNewEntry] = useState({});
   const role = localStorage.getItem('role');
 
   const endpointMap = {
@@ -35,7 +38,8 @@ function EntityPage() {
     roommatesearch: 'roommatesearch',
     commute: 'commute',
     movingservices: 'movingservices',
-    safetyfeatures: 'safetyfeatures'
+    safetyfeatures: 'safetyfeatures',
+    amenities: 'amenities'
   };
 
   const idFieldMap = {
@@ -46,7 +50,8 @@ function EntityPage() {
     roommatesearch: 'StudentID',
     commute: 'CommuteID',
     movingservices: 'ServiceID',
-    safetyfeatures: 'FeatureID'
+    safetyfeatures: 'FeatureID',
+    amenities: 'AmenityID'
   };
 
   const idField = idFieldMap[entityName];
@@ -69,6 +74,7 @@ function EntityPage() {
     return () => {
       setEditingRow(null);
       setEditData({});
+      setNewEntry({});
     };
   }, [entityName]);
 
@@ -107,18 +113,29 @@ function EntityPage() {
     }
   };
 
+  const handleCreate = async () => {
+    try {
+      await fetch(`http://localhost:5000/${endpointMap[entityName]}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newEntry)
+      });
+      setNewEntry({});
+      fetchData();
+    } catch (err) {
+      console.error('Failed to create entry:', err);
+    }
+  };
+
   if (loading) return <CircularProgress sx={{ mt: 10 }} />;
   if (!data || data.length === 0) return <Typography>No data found.</Typography>;
 
-  // Filter out all ID fields except ones with 'name' or 'email'
   const headers = Object.keys(data[0]).filter((key) => {
     const lower = key.toLowerCase();
-    return !(
-      lower.includes('id') &&
-      !lower.includes('name') &&
-      !lower.includes('email')
-    );
+    return !(lower.includes('id') && !lower.includes('name') && !lower.includes('email'));
   });
+
+  const isAmenity = entityName === 'amenities';
 
   return (
     <Container maxWidth="lg" sx={{ mt: 8 }}>

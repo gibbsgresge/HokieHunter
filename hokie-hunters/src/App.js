@@ -9,6 +9,7 @@ import Signup from './pages/signup'
 import Landing from './pages/Landing'
 import EntityPage from './pages/EntityPage'
 import Account from './pages/Account'
+import ChangePassword from './pages/changePassword'
 function App() {
   return (
     <ThemeProvider theme={theme}>
@@ -21,6 +22,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/entity/:entityName" element={<EntityPage />} />
           <Route path="/account" element={<Account />} />
+          <Route path="/change-password" element={<ChangePassword />} />
         </Routes>
       </Router>
     </ThemeProvider>

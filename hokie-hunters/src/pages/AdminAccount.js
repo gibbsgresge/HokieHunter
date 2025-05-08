@@ -13,11 +13,17 @@ function AdminAccount() {
     setUsers(data);
   };
 
-  const makeAdmin = async (id) => {
-    await fetch(`http://localhost:5000/users/${id}`, {
+  const makeAdmin = async (user) => {
+    await fetch(`http://localhost:5000/users/${user.UserID}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ Role: 'admin' })
+      body: JSON.stringify({
+        Role: 'admin',
+        Email: user.Email,
+        Extra: {
+          Permissions: 'all'  // or set specific permissions if you want
+        }
+      })
     });
     fetchUsers();
   };
@@ -45,12 +51,12 @@ function AdminAccount() {
               {users.map((user) => (
                 <TableRow key={user.UserID}>
                   <TableCell>{user.UserID}</TableCell>
-                  <TableCell>{user.Username}</TableCell>
+                  <TableCell>{user.Username || 'N/A'}</TableCell>
                   <TableCell>{user.Email}</TableCell>
                   <TableCell>{user.Role}</TableCell>
                   <TableCell>
                     {user.Role !== 'admin' && (
-                      <Button onClick={() => makeAdmin(user.UserID)} variant="contained" size="small">
+                      <Button onClick={() => makeAdmin(user)} variant="contained" size="small">
                         Promote to Admin
                       </Button>
                     )}

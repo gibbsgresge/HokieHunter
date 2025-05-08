@@ -133,6 +133,30 @@ def signup_admin():
         return jsonify({'message': 'Admin account created', 'user_id': new_admin.UserID})
 
 
+@auth_bp.route('/reset_password', methods=['POST'])
+def reset_password():
+    data = request.get_json()
+
+    username = data.get('username')
+    old_password = data.get('old_password')
+    new_password = data.get('new_password')
+
+    if not all([username, old_password, new_password]):
+        return jsonify({'error': 'Username, old password, and new password are required'}), 400
+
+    with Session(engine) as session:
+        user = session.query(Users).filter_by(Username=username).first()
+
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        if not check_password_hash(user.PasswordHash, old_password):
+            return jsonify({'error': 'Old password is incorrect'}), 403
+
+        user.PasswordHash = generate_password_hash(new_password)
+        session.commit()
+
+        return jsonify({'message': 'Password changed successfully'})
 
 
 

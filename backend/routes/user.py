@@ -16,8 +16,15 @@ def get_users():
     with Session(engine) as session:
         users = session.query(Users).all()
         return jsonify([
-            {"UserID": u.UserID, "Email": u.Email, "Role": u.Role} for u in users
+            {
+                "UserID": u.UserID,
+                "Username": u.Username,  # ← now included
+                "Email": u.Email,
+                "Role": u.Role
+            }
+            for u in users
         ])
+
 
 # -----------------------------
 # Get single user
@@ -50,7 +57,7 @@ def change_user_role(user_id):
     data = request.get_json()
     new_role = data.get('Role')
     new_email = data.get('Email')
-    extra_fields = data.get('Extra', {})  # e.g., {'Major': 'CS'}
+    extra_fields = data.get('Extra', {})  # optional: {'Major': ..., 'Permissions': ...}
 
     with Session(engine) as session:
         user = session.get(Users, user_id)
@@ -58,19 +65,23 @@ def change_user_role(user_id):
         if not user:
             return jsonify({"error": "User not found"}), 404
 
-        current_class = type(user)
         current_role = user.Role
 
-        # If role changed, delete current subclass and recreate
+        # If role changed, preserve username/password and recreate with new subclass
         if new_role != current_role:
+            original_username = user.Username
+            original_password_hash = user.PasswordHash
+
             session.delete(user)
-            session.flush()  # keeps UserID usable
+            session.flush()  # preserve user_id
 
             if new_role == 'student':
                 new_user = Students(
                     StudentID=user_id,
                     Email=new_email,
                     Role='student',
+                    Username=original_username,
+                    PasswordHash=original_password_hash,
                     Major=extra_fields.get('Major'),
                     GraduationYear=extra_fields.get('GraduationYear')
                 )
@@ -78,26 +89,32 @@ def change_user_role(user_id):
                 new_user = Landlords(
                     LandlordID=user_id,
                     Email=new_email,
-                    Role='landlord'
+                    Role='landlord',
+                    Username=original_username,
+                    PasswordHash=original_password_hash
                 )
             elif new_role == 'admin':
                 new_user = Admin(
                     AdminID=user_id,
                     Email=new_email,
                     Role='admin',
+                    Username=original_username,
+                    PasswordHash=original_password_hash,
                     Permissions=extra_fields.get('Permissions')
                 )
             else:
                 return jsonify({"error": "Invalid role"}), 400
 
             session.add(new_user)
+
         else:
-            # Role unchanged, update email if needed
+            # If role is unchanged, allow email updates only
             if new_email and user.Email != new_email:
                 user.Email = new_email
 
         session.commit()
-        return jsonify({"message": "User updated"}), 200
+        return jsonify({"message": "User role updated successfully"}), 200
+
 
 
 # -----------------------------
